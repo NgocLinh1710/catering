@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('dishes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('company_id')->index();
+
+            $table->string('name');
+            $table->text('instructions')->nullable(); // Hướng dẫn nấu (có thể trống)
+
+            // Tổng calo tự động tính toán và lưu vào đây để query cho nhanh
+            $table->decimal('total_calories', 10, 2)->default(0);
+
+            // Tag dị ứng tổng hợp từ các nguyên liệu cấu thành món ăn
+            $table->json('dish_tags')->nullable();
+
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('dishes');
+    }
+};
