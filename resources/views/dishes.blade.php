@@ -24,8 +24,8 @@
                 <tr style="background-color: #e5e7eb; color: #374151;">
                     <th class="p-3 border-b">ID</th>
                     <th class="p-3 border-b">Tên món ăn</th>
-                    <th class="p-3 border-b">Tổng Calo</th>
-                    <th class="p-3 border-b">Tags Dị ứng</th>
+                    <th class="p-3 border-b">Tổng calo</th>
+                    <th class="p-3 border-b">Tags dị ứng</th>
                 </tr>
             </thead>
             <tbody id="dish-table-body">
@@ -39,48 +39,86 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/api/dishes')
-                .then(response => response.json())
+        // Kiểm tra xem có Token chưa, chưa thì về Login
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = '/login';
+        }
+
+        // Hàm Load danh sách món ăn 
+        function loadDishes() {
+            fetch('/api/dishes', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(response => {
+                    if (response.status === 401) { logout(); }
+                    return response.json();
+                })
                 .then(data => {
                     const tableBody = document.getElementById('dish-table-body');
                     tableBody.innerHTML = '';
-
                     if (data.data && data.data.length > 0) {
                         data.data.forEach(dish => {
                             let tags = dish.dish_tags ? dish.dish_tags.join(', ') : 'Không có';
-
                             let row = `
-                                <tr style="border-bottom: 1px solid #e5e7eb;" 
-                                    onmouseover="this.style.backgroundColor='#f9fafb'" 
-                                    onmouseout="this.style.backgroundColor='transparent'">
-                                    <td class="p-3">${dish.id}</td>
-                                    <td class="p-3 font-semibold" style="color: #1f2937;">${dish.name}</td>
-                                    <td class="p-3 font-bold" style="color: #16a34a;">${dish.total_calories} kcal</td>
-                                    <td class="p-3 text-sm" style="color: #ef4444;">${tags}</td>
-                                </tr>
-                            `;
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3">${dish.id}</td>
+                            <td class="p-3 font-semibold text-gray-800">${dish.name}</td>
+                            <td class="p-3 text-green-600 font-bold">${dish.total_calories} kcal</td>
+                            <td class="p-3 text-sm text-red-500">${tags}</td>
+                        </tr>`;
                             tableBody.innerHTML += row;
                         });
-                    } else {
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="4" class="p-3 text-center">
-                                    Chưa có món ăn nào trong hệ thống.
-                                </td>
-                            </tr>
-                        `;
                     }
-                })
-                .catch(error => {
-                    console.error('Lỗi khi gọi API:', error);
-                    document.getElementById('dish-table-body').innerHTML = `
-                        <tr>
-                            <td colspan="4" class="p-3 text-center" style="color: #ef4444;">
-                                Lỗi kết nối API!
-                            </td>
-                        </tr>
-                    `;
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDishes);
+
+        const modal = document.getElementById('addDishModal');
+        function openModal() { modal.classList.remove('hidden'); }
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.getElementById('addDishForm').reset();
+        }
+
+        document.getElementById('addDishForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const requestData = {
+                name: document.getElementById('dishName').value,
+                total_calories: document.getElementById('dishCalories').value,
+                instructions: document.getElementById('dishInstructions').value,
+                ingredients: { 1: { quantity: 0.2 } }
+            };
+
+            fetch('/api/dishes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Đã thêm món ăn thành công!');
+                        closeModal();
+                        loadDishes();
+                    } else {
+                        alert('Lỗi: ' + (data.message || 'Kiểm tra lại dữ liệu'));
+                    }
                 });
         });
     </script>
