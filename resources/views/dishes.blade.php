@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Món ăn - Catering</title>
     <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-gray-100 flex h-screen overflow-hidden">
@@ -19,20 +19,27 @@
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2">
-            <a href="#" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
+            <a href="#" id="menu-overview"
+                class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
                 <i class="fas fa-chart-pie w-6"></i> Tổng quan
             </a>
 
-            <a href="#" class="flex items-center px-4 py-3 text-gray-900 rounded-lg shadow-md"
+            <a href="#" id="menu-companies"
+                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
+                <i class="fas fa-building w-6"></i> Duyệt Công ty
+            </a>
+
+            <a href="#" id="menu-dishes" class="hidden items-center px-4 py-3 text-gray-900 rounded-lg shadow-md"
                 style="background-color: #86efac;">
                 <i class="fas fa-hamburger w-6"></i> Kho Món ăn
             </a>
-
-            <a href="#" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
+            <a href="#" id="menu-ingredients"
+                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
                 <i class="fas fa-seedling w-6"></i> Nguyên liệu
             </a>
 
-            <a href="#" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
+            <a href="#" id="menu-planning"
+                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
                 <i class="fas fa-calendar-alt w-6"></i> Lập Thực đơn
             </a>
         </nav>
@@ -49,8 +56,12 @@
         <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-10">
             <h2 class="text-xl font-semibold text-gray-800">Quản lý Kho Món Ăn</h2>
             <div class="flex items-center text-gray-600">
-                <span class="mr-4">Xin chào, <b id="userNameDisplay">Admin</b></span>
-                <img src="https://ui-avatars.com/api/?name=Admin&background=86efac&color=1f2937"
+                <div class="mr-4 text-right">
+                    <div>Xin chào, <b id="userNameDisplay">Đang tải...</b></div>
+                    <span id="userRoleDisplay"
+                        class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full font-bold uppercase">Role</span>
+                </div>
+                <img id="userAvatarDisplay" src="https://ui-avatars.com/api/?name=User&background=86efac&color=1f2937"
                     class="h-8 w-8 rounded-full">
             </div>
         </header>
@@ -112,7 +123,8 @@
                     class="w-full p-2 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-300"></textarea>
 
                 <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">
+                    <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">
                         Hủy
                     </button>
 
@@ -133,6 +145,49 @@
             window.location.href = '/login';
         }
 
+        // Hàm lấy thông tin User đang đăng nhập và phân quyền Menu
+        function checkUserRole() {
+            fetch('/api/user', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(response => {
+                    if (response.status === 401) { logout(); }
+                    return response.json();
+                })
+                .then(user => {
+                    // Hiển thị tên và role lên Header
+                    document.getElementById('userNameDisplay').innerText = user.name;
+                    document.getElementById('userRoleDisplay').innerText = user.role;
+
+                    document.getElementById('userAvatarDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=86efac&color=1f2937`;
+
+                    // Logic Ẩn/Hiện Menu
+                    const role = user.role.toLowerCase();
+
+                    if (role === 'admin') {
+                        document.getElementById('menu-companies').style.display = 'flex'; // Admin duyệt công ty
+                    }
+                    else if (role === 'company') {
+                        document.getElementById('menu-ingredients').style.display = 'flex'; // Công ty quản lý kho
+                        document.getElementById('menu-dishes').style.display = 'flex';
+                    }
+                    else if (role === 'employee') {
+                        document.getElementById('menu-dishes').style.display = 'flex'; // NV được xem kho món ăn
+                        document.getElementById('menu-planning').style.display = 'flex'; // NV lập thực đơn
+                    }
+                })
+                .catch(error => console.error("Lỗi lấy thông tin user:", error));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkUserRole();
+            loadDishes();
+        });
+
         function logout() {
             localStorage.removeItem('access_token');
             window.location.href = '/login';
@@ -147,37 +202,34 @@
                     'Authorization': 'Bearer ' + token
                 }
             })
-            .then(response => {
-                if (response.status === 401) { logout(); }
-                return response.json();
-            })
-            .then(data => {
-                const tableBody = document.getElementById('dish-table-body');
-                tableBody.innerHTML = '';
-                if (data.data && data.data.length > 0) {
-                    data.data.forEach(dish => {
-                        let tags = dish.dish_tags ? dish.dish_tags.join(', ') : '<span class="text-gray-400 text-sm">Không có</span>';
-                        let row = `
+                .then(response => {
+                    if (response.status === 401) { logout(); }
+                    return response.json();
+                })
+                .then(data => {
+                    const tableBody = document.getElementById('dish-table-body');
+                    tableBody.innerHTML = '';
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(dish => {
+                            let tags = dish.dish_tags ? dish.dish_tags.join(', ') : '<span class="text-gray-400 text-sm">Không có</span>';
+                            let row = `
                         <tr class="border-b hover:bg-gray-50">
                             <td class="p-4 text-gray-500">#${dish.id}</td>
                             <td class="p-4 font-semibold text-gray-800">${dish.name}</td>
                             <td class="p-4 text-green-600 font-bold">${dish.total_calories} kcal</td>
                             <td class="p-4 text-sm text-red-500">${tags}</td>
                         </tr>`;
-                        tableBody.innerHTML += row;
-                    });
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Chưa có món ăn nào.</td></tr>';
-                }
-            })
-            .catch(error => {
-                console.error("Lỗi tải dữ liệu:", error);
-                document.getElementById('dish-table-body').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Lỗi tải dữ liệu!</td></tr>';
-            });
+                            tableBody.innerHTML += row;
+                        });
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Chưa có món ăn nào.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi tải dữ liệu:", error);
+                    document.getElementById('dish-table-body').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">Lỗi tải dữ liệu!</td></tr>';
+                });
         }
-
-        // Chạy khi mở trang
-        document.addEventListener('DOMContentLoaded', loadDishes);
 
         // Logic ẩn/hiện Modal
         const modal = document.getElementById('addDishModal');
@@ -207,17 +259,18 @@
                 },
                 body: JSON.stringify(requestData)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    closeModal();
-                    loadDishes(); // Load lại bảng ngay lập tức
-                } else {
-                    alert('Lỗi: ' + (data.message || 'Kiểm tra lại dữ liệu'));
-                }
-            })
-            .catch(error => console.error("Lỗi thêm món:", error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        closeModal();
+                        loadDishes();
+                    } else {
+                        alert('Lỗi: ' + (data.message || 'Kiểm tra lại dữ liệu'));
+                    }
+                })
+                .catch(error => console.error("Lỗi thêm món:", error));
         });
     </script>
 </body>
+
 </html>

@@ -13,3 +13,7 @@ Route::get('/login', function () {
 Route::get('/quan-ly-mon-an', function () {
     return view('dishes');
 });
+
+Route::get('/tong-quan', function () {
+    return "Đây là trang Tổng quan dành cho Admin!";
+});

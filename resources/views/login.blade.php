@@ -62,8 +62,21 @@
                 .then(data => {
                     if (data.status === 'success') {
                         localStorage.setItem('access_token', data.access_token);
-                        window.location.href = '/quan-ly-mon-an';
+
+                        const role = data.user.role.toLowerCase();
+
+                        if (role === 'admin') {
+                            window.location.href = '/tong-quan';
+                        }
+                        else if (role === 'company' || role === 'employee') {
+                            window.location.href = '/quan-ly-mon-an';
+                        }
+                        else {
+                            window.location.href = '/';
+                        }
+
                     } else {
+                        // Sai pass / email
                         const errorP = document.getElementById('errorMessage');
                         errorP.innerText = data.message;
                         errorP.classList.remove('hidden');
