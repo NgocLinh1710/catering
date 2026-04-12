@@ -4,8 +4,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DishController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyRegistrationController;
 
 Route::post('/login', [AuthController::class, 'login']);
+
+// API để Công ty Đăng ký
+Route::post('/register-company', [CompanyRegistrationController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
 

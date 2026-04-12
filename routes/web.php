@@ -17,3 +17,7 @@ Route::get('/quan-ly-mon-an', function () {
 Route::get('/tong-quan', function () {
     return "Đây là trang Tổng quan dành cho Admin!";
 });
+
+Route::get('/dang-ky', function () {
+    return view('register');
+});
