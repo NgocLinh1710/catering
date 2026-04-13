@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DishController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
+use App\Http\Controllers\Admin\CompanyApprovalController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -23,3 +24,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('dishes', DishController::class);
 
 });
+
+// API để Admin bấm duyệt Công ty (Gắn ở cuối file)
+Route::post('/admin/approve-company/{id}', [CompanyApprovalController::class, 'approve']);

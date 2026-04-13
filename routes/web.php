@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\CompanyApprovalController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,3 +22,5 @@ Route::get('/tong-quan', function () {
 Route::get('/dang-ky', function () {
     return view('register');
 });
+
+Route::get('/admin/duyet-cong-ty', [CompanyApprovalController::class, 'index']);
