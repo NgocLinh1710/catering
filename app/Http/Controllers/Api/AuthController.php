@@ -19,6 +19,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        // Kiểm tra user có tồn tại và pass có khớp không
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 'error',
@@ -26,12 +27,14 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Tạo token
         $token = $user->createToken('CateringAppToken')->plainTextToken;
 
+        // Trả về cho FE
         return response()->json([
             'status' => 'success',
             'message' => 'Đăng nhập thành công',
-            'user' => $user,
+            'user' => $user, // Frontend sẽ dùng cái này để check user.role
             'access_token' => $token
         ]);
     }

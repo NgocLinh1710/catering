@@ -4,52 +4,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Catering SaaS</title>
+    <title>Đăng nhập - Catering System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 
-<body class="flex items-center justify-center h-screen" style="background-color: #f3f4f6;">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
 
-    <div class="p-8 rounded-lg shadow-md w-96" style="background-color: #ffffff;">
-        <h2 class="text-2xl font-bold text-center mb-6" style="color: #1f2937;">
-            Đăng nhập Hệ thống
-        </h2>
+    <div class="bg-white p-8 md:p-10 shadow-xl rounded-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-green-500 mb-2"><i class="fas fa-utensils mr-2"></i>Catering</h1>
+            <p class="text-gray-500">Đăng nhập vào bảng điều khiển của bạn</p>
+        </div>
 
-        <form id="loginForm">
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1" style="color: #374151;">
-                    Email
-                </label>
-                <input type="email" id="email" value="admin@gmail.com" class="w-full p-2 rounded focus:outline-none"
-                    style="border: 1px solid #d1d5db;" onfocus="this.style.boxShadow='0 0 0 2px #3b82f6'"
-                    onblur="this.style.boxShadow='none'" required>
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-envelope text-gray-400"></i>
+                    </div>
+                    <input type="email" id="email" required placeholder="Nhập email của bạn"
+                        class="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                </div>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-sm font-medium mb-1" style="color: #374151;">
-                    Mật khẩu
-                </label>
-                <input type="password" id="password" value="123456" class="w-full p-2 rounded focus:outline-none"
-                    style="border: 1px solid #d1d5db;" onfocus="this.style.boxShadow='0 0 0 2px #3b82f6'"
-                    onblur="this.style.boxShadow='none'" required>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="password" required placeholder="Nhập mật khẩu"
+                        class="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                </div>
             </div>
 
-            <button type="submit" class="w-full text-gray-800 font-bold py-2 px-4 rounded transition"
-                style="background-color: #86efac;" onmouseover="this.style.backgroundColor='#4ade80'"
-                onmouseout="this.style.backgroundColor='#86efac'">
-                🍗 Vào Bếp 🍔
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center text-gray-600">
+                    <input type="checkbox" class="mr-2 rounded text-green-500 focus:ring-green-400"> Ghi nhớ tôi
+                </label>
+                <a href="#" class="text-green-600 hover:underline">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition shadow-md">
+                Đăng Nhập
             </button>
         </form>
 
-        <p id="errorMessage" class="text-sm text-center mt-4 hidden" style="color: #ef4444;"></p>
+        <div class="mt-6 text-center text-sm text-gray-500">
+            Công ty của bạn chưa có tài khoản?
+            <a href="/dang-ky" class="text-green-600 font-medium hover:underline">Đăng ký ngay</a>
+        </div>
     </div>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', function (e) {
             e.preventDefault();
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
 
+            // Gọi API đăng nhập
             fetch('/api/login', {
                 method: 'POST',
                 headers: {
@@ -62,27 +80,22 @@
                 .then(data => {
                     if (data.status === 'success') {
                         localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('user_role', data.user.role);
 
                         const role = data.user.role.toLowerCase();
-
                         if (role === 'admin') {
                             window.location.href = '/tong-quan';
-                        }
-                        else if (role === 'company' || role === 'employee') {
+                        } else {
                             window.location.href = '/quan-ly-mon-an';
                         }
-                        else {
-                            window.location.href = '/';
-                        }
-
                     } else {
-                        // Sai pass / email
-                        const errorP = document.getElementById('errorMessage');
-                        errorP.innerText = data.message;
-                        errorP.classList.remove('hidden');
+                        alert(data.message || 'Đăng nhập thất bại!');
                     }
                 })
-                .catch(error => console.error('Lỗi:', error));
+                .catch(error => {
+                    console.error('Lỗi kết nối:', error);
+                    alert('Không thể kết nối đến máy chủ!');
+                });
         });
     </script>
 </body>
