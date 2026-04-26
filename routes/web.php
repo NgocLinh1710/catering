@@ -24,3 +24,7 @@ Route::get('/dang-ky', function () {
 });
 
 Route::get('/admin/duyet-cong-ty', [CompanyApprovalController::class, 'index']);
+
+Route::get('/quan-ly-nhan-vien', function () {
+    return view('employees');
+});

@@ -65,7 +65,6 @@
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
 
             // Gọi API đăng nhập
             fetch('/api/login', {
@@ -79,17 +78,24 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
+                        // Lưu token
                         localStorage.setItem('access_token', data.access_token);
                         localStorage.setItem('user_role', data.user.role);
 
                         const role = data.user.role.toLowerCase();
+
+                        // Phân quyền điều hướng
                         if (role === 'admin') {
-                            window.location.href = '/tong-quan';
-                        } else {
-                            window.location.href = '/quan-ly-mon-an';
+                            window.location.href = '/tong-quan'; // Admin về trang tổng quan
+                        }
+                        else if (role === 'company' || role === 'company_admin' || role === 'employee') {
+                            window.location.href = '/quan-ly-mon-an'; // Cty & NV vào trang món ăn
+                        }
+                        else {
+                            window.location.href = '/';
                         }
                     } else {
-                        alert(data.message || 'Đăng nhập thất bại!');
+                        alert(data.message || 'Đăng nhập thất bại. Kiểm tra lại Email/Mật khẩu!');
                     }
                 })
                 .catch(error => {
