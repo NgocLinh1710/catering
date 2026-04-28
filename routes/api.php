@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::post('/employees', [EmployeeController::class, 'store']);
     Route::apiResource('employees', EmployeeController::class);
+    Route::patch('employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
 });
 
 Route::post('/admin/approve-company/{id}', [CompanyApprovalController::class, 'approve']);
