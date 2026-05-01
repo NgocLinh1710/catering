@@ -12,23 +12,19 @@ return new class extends Migration {
     {
         Schema::create('ingredients', function (Blueprint $table) {
             $table->id();
-            // company_id phân biệt dữ liệu của công ty nào 
             $table->unsignedBigInteger('company_id')->index();
-
             $table->string('name');
-            $table->string('unit', 50); // kg, l, gram...
+            $table->string('unit')->default('kg');
 
-            // Dinh dưỡng chuẩn (Tính trên 100g/100ml)
-            $table->decimal('calories', 8, 2)->default(0);
-            $table->decimal('protein', 8, 2)->default(0);
-            $table->decimal('fat', 8, 2)->default(0);
-            $table->decimal('carb', 8, 2)->default(0);
-            $table->decimal('fiber', 8, 2)->default(0);
+            // Dinh dưỡng trên mỗi đơn vị (ví dụ 100g hoặc 1kg)
+            $table->decimal('calories', 10, 2)->default(0);
+            $table->decimal('protein', 10, 2)->default(0);
+            $table->decimal('lipid', 10, 2)->default(0);
+            $table->decimal('glucid', 10, 2)->default(0);
+            $table->decimal('fiber', 10, 2)->default(0)->nullable();
 
-            $table->decimal('current_price', 12, 2)->default(0); // Giá tiền hiện tại
-
-            // Dùng JSON để lưu mảng các Tag dị ứng/tôn giáo linh hoạt
-            $table->json('tags')->nullable();
+            $table->decimal('current_price', 15, 2)->default(0);
+            $table->json('tags')->nullable(); // Ví dụ: 'hải sản', 'đồ chay'
 
             $table->timestamps();
         });

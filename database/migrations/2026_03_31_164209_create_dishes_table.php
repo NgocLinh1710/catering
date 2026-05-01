@@ -5,9 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('dishes', function (Blueprint $table) {
@@ -15,21 +12,26 @@ return new class extends Migration {
             $table->unsignedBigInteger('company_id')->index();
 
             $table->string('name');
-            $table->text('instructions')->nullable(); // Hướng dẫn nấu (có thể trống)
+            $table->string('category')->nullable();
 
-            // Tổng calo tự động tính toán và lưu vào đây để query cho nhanh
-            $table->decimal('total_calories', 10, 2)->default(0);
+            $table->decimal('price', 12, 2)->default(0);
 
-            // Tag dị ứng tổng hợp từ các nguyên liệu cấu thành món ăn
+            $table->decimal('calories', 10, 2)->default(0);
+            $table->decimal('protein', 8, 2)->default(0)->nullable();
+            $table->decimal('lipid', 8, 2)->default(0)->nullable();
+            $table->decimal('glucid', 8, 2)->default(0)->nullable();
+
+            $table->text('instructions')->nullable();
             $table->json('dish_tags')->nullable();
+            $table->string('image_url')->nullable();
 
             $table->timestamps();
+
+            // Nếu xóa công ty thì xóa luôn món ăn của công ty đó
+            $table->foreign('company_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('dishes');

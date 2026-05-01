@@ -12,9 +12,15 @@ class Dish extends Model
     protected $fillable = [
         'company_id',
         'name',
+        'category',
+        'price',
+        'calories',
+        'protein',
+        'lipid',
+        'glucid',
         'instructions',
-        'total_calories',
-        'dish_tags'
+        'dish_tags',
+        'image_url'
     ];
 
     protected $casts = [

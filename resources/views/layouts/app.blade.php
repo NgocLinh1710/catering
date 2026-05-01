@@ -115,6 +115,10 @@
                         document.getElementById('menu-dishes').style.display = 'flex';
                         document.getElementById('menu-planning').style.display = 'flex';
                     }
+
+                    if (typeof loadDishes === 'function') {
+                        loadDishes();
+                    }
                 })
                 .catch(error => console.error("Lỗi:", error));
         }
@@ -126,7 +130,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserRole();
-        });
+        }
+        );
     </script>
 
     @yield('scripts')
