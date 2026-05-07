@@ -7,6 +7,12 @@
     <title>@yield('title') - Catering System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Đảm bảo menu ẩn mượt mà trước khi JS check role */
+        .menu-item {
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 flex h-screen overflow-hidden">
@@ -19,34 +25,34 @@
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2">
-            <a href="/tong-quan" id="menu-overview"
-                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
-                <i class="fas fa-chart-pie w-6"></i> Tổng quan
-            </a>
-
-            <a href="/admin/duyet-cong-ty" id="menu-companies"
-                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
-                <i class="fas fa-building w-6"></i> Duyệt Công ty
-            </a>
-
-            <a href="/quan-ly-mon-an" id="menu-dishes"
-                class="hidden items-center px-4 py-3 {{ Request::is('quan-ly-mon-an') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
-                <i class="fas fa-hamburger w-6"></i> Kho Món ăn
+            <a href="#" id="menu-overview"
+                class="menu-item items-center px-4 py-3 {{ Request::is('cong-ty/tong-quan') || Request::is('admin/tong-quan') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-th-large w-6"></i> Tổng quan
             </a>
 
             <a href="/quan-ly-nhan-vien" id="menu-employees"
-                class="hidden items-center px-4 py-3 {{ Request::is('quan-ly-nhan-vien') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-nhan-vien') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
                 <i class="fas fa-users w-6"></i> Nhân sự
             </a>
 
-            <a href="#" id="menu-ingredients"
-                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
-                <i class="fas fa-seedling w-6"></i> Nguyên liệu
+            <a href="/quan-ly-nguyen-lieu" id="menu-ingredients"
+                class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-nguyen-lieu') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-leaf w-6"></i> Nguyên liệu
             </a>
 
-            <a href="#" id="menu-planning"
-                class="hidden items-center px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition">
-                <i class="fas fa-calendar-alt w-6"></i> Lập Thực đơn
+            <a href="/quan-ly-mon-an" id="menu-dishes"
+                class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-mon-an') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-utensils w-6"></i> Kho Món ăn
+            </a>
+
+            <a href="/lap-thuc-don" id="menu-planning"
+                class="menu-item items-center px-4 py-3 {{ Request::is('lap-thuc-don') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-calendar-check w-6"></i> Lập Thực đơn
+            </a>
+
+            <a href="/admin/duyet-cong-ty" id="menu-companies"
+                class="menu-item items-center px-4 py-3 {{ Request::is('admin/duyet-cong-ty') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-shield-alt w-6"></i> Duyệt Công ty
             </a>
         </nav>
 
@@ -69,7 +75,7 @@
                         class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full font-bold uppercase">Role</span>
                 </div>
                 <img id="userAvatarDisplay" src="https://ui-avatars.com/api/?name=User&background=86efac&color=1f2937"
-                    class="h-8 w-8 rounded-full">
+                    class="h-8 w-8 rounded-full border border-gray-200">
             </div>
         </header>
 
@@ -95,32 +101,46 @@
                     return response.json();
                 })
                 .then(user => {
+                    // Hiển thị thông tin user lên Header
                     document.getElementById('userNameDisplay').innerText = user.name;
                     document.getElementById('userRoleDisplay').innerText = user.role;
                     document.getElementById('userAvatarDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=86efac&color=1f2937`;
 
                     const role = user.role.toLowerCase();
+                    const overviewBtn = document.getElementById('menu-overview');
 
-                    // Logic Ẩn/Hiện Menu
+                    // Ẩn tất cả menu trước khi check role để tránh bị chồng chéo
+                    const allMenus = ['menu-overview', 'menu-companies', 'menu-ingredients', 'menu-dishes', 'menu-employees', 'menu-planning'];
+                    allMenus.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.style.display = 'none';
+                    });
+
+                    // Phân quyền hiển thị & Gán link Tổng quan
                     if (role === 'admin') {
-                        document.getElementById('menu-overview').style.display = 'flex';
-                        document.getElementById('menu-companies').style.display = 'flex';
+                        overviewBtn.href = "/admin/tong-quan"; // Link riêng của Admin
+                        showMenu(['menu-overview', 'menu-companies']);
                     }
                     else if (role === 'company' || role === 'company_admin') {
-                        document.getElementById('menu-ingredients').style.display = 'flex';
-                        document.getElementById('menu-dishes').style.display = 'flex';
-                        document.getElementById('menu-employees').style.display = 'flex';
+                        overviewBtn.href = "/cong-ty/tong-quan"; // Link Dashboard Công ty 
+                        showMenu(['menu-overview', 'menu-employees', 'menu-ingredients']);
                     }
                     else if (role === 'employee') {
-                        document.getElementById('menu-dishes').style.display = 'flex';
-                        document.getElementById('menu-planning').style.display = 'flex';
+                        showMenu(['menu-dishes', 'menu-planning']);
                     }
 
-                    if (typeof loadDishes === 'function') {
-                        loadDishes();
-                    }
+                    if (typeof loadData === 'function') loadData();
+                    if (typeof loadDishes === 'function' && role === 'employee') loadDishes();
                 })
-                .catch(error => console.error("Lỗi:", error));
+                .catch(error => console.error("Lỗi xác thực:", error));
+        }
+
+        // Hàm bổ trợ để hiện menu
+        function showMenu(menuIds) {
+            menuIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'flex';
+            });
         }
 
         function logout() {
@@ -128,12 +148,10 @@
             window.location.href = '/login';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkUserRole();
-        }
-        );
+        document.addEventListener('DOMContentLoaded', checkUserRole);
     </script>
 
+    <script src="{{ asset('js/pagination.js') }}"></script>
     @yield('scripts')
 </body>
 

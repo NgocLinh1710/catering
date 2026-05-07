@@ -2,36 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Dish extends Model
 {
-    use HasFactory;
+    protected $fillable = ['name', 'company_id', 'created_by', 'total_calories', 'total_protein', 'estimated_cost'];
 
-    protected $fillable = [
-        'company_id',
-        'name',
-        'category',
-        'price',
-        'calories',
-        'protein',
-        'lipid',
-        'glucid',
-        'instructions',
-        'dish_tags',
-        'image_url'
-    ];
-
-    protected $casts = [
-        'dish_tags' => 'array',
-    ];
-
-    // Mối quan hệ: 1 món ăn bao gồm nhiều thực phẩm
     public function ingredients()
     {
+        // Quan hệ n-n với bảng ingredients thông qua bảng trung gian dish_ingredients
         return $this->belongsToMany(Ingredient::class, 'dish_ingredients')
-            ->withPivot('quantity') // Lấy thêm cột định lượng ở bảng trung gian
-            ->withTimestamps();
+            ->withPivot('weight');
     }
 }

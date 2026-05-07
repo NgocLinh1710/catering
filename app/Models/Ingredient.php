@@ -8,21 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class Ingredient extends Model
 {
     use HasFactory;
-    // Các cột được phép thêm dữ liệu
     protected $fillable = [
         'company_id',
         'name',
         'unit',
         'calories',
         'protein',
-        'fat',
-        'carb',
+        'lipid',
+        'glucid',
         'fiber',
-        'current_price',
+        'price_per_kg',
         'tags'
     ];
 
-    // Ép kiểu JSON (MySQL) thành Array (PHP)
     protected $casts = [
         'tags' => 'array',
     ];

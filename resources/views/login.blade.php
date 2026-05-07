@@ -86,13 +86,13 @@
 
                         // Phân quyền điều hướng
                         if (role === 'admin') {
-                            window.location.href = '/tong-quan'; // Admin về trang tổng quan
+                            window.location.href = '/tong-quan';
                         }
-                        else if (role === 'company' || role === 'company_admin' || role === 'employee') {
-                            window.location.href = '/quan-ly-mon-an'; // Cty & NV vào trang món ăn
+                        else if (role === 'company' || role === 'company_admin') {
+                            window.location.href = '/cong-ty/tong-quan';;
                         }
-                        else {
-                            window.location.href = '/';
+                        else if (role === 'employee') {
+                            window.location.href = '/quan-ly-mon-an';
                         }
                     } else {
                         alert(data.message || 'Đăng nhập thất bại. Kiểm tra lại Email/Mật khẩu!');

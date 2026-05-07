@@ -12,14 +12,6 @@
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
 
-            <div class="flex justify-between items-center mt-4">
-                <div class="text-sm text-gray-600">
-                    Hiển thị <span id="totalItems">0</span> nhân viên
-                </div>
-                <div id="pagination" class="flex space-x-2">
-                </div>
-            </div>
-
             <button onclick="openModal()" class="px-4 py-2 rounded-lg shadow-md transition flex items-center text-gray-800"
                 style="background-color: #86efac;" onmouseover="this.style.backgroundColor='#4ade80'"
                 onmouseout="this.style.backgroundColor='#86efac'">
@@ -43,6 +35,13 @@
                 </tr>
             </tbody>
         </table>
+        <div class="flex justify-center items-center mt-4 space-x-4">
+            <div class="text-sm text-gray-600">
+                Có tất cả <span id="totalItems">0</span> nhân viên
+            </div>
+            <div id="pagination" class="flex justify-center space-x-2">
+            </div>
+        </div>
     </div>
 
     <div id="addEmployeeModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
@@ -73,12 +72,14 @@
     <script>
         let editingId = null;
 
-        let currentPage = 1;
-        let searchKeyword = '';
+        const paginator = PaginationManager({
+            containerId: 'pagination',
+            loadFunction: loadEmployees
+        });
 
         function loadEmployees(page = 1, search = '') {
-            currentPage = page;
-            searchKeyword = search;
+            paginator.currentPage = page;
+            paginator.searchKeyword = search;
 
             fetch(`/api/employees?page=${page}&search=${search}`, {
                 method: 'GET',
@@ -100,42 +101,28 @@
                         const lockTitle = emp.status === 'inactive' ? 'Mở khóa' : 'Khóa tài khoản';
 
                         tableBody.innerHTML += `
-                                                                            <tr class="border-b hover:bg-gray-50 ${emp.status === 'inactive' ? 'bg-gray-50' : ''}">
-                                                                                <td class="p-4 text-gray-700 font-medium">${stt}</td> 
-                                                                                <td class="p-4 font-semibold ${emp.status === 'inactive' ? 'text-gray-400' : 'text-gray-800'}">${emp.name}</td>
-                                                                                <td class="p-4 text-gray-600">${emp.email}</td>
-                                                                                <td class="p-4 text-center">${statusBadge}</td>
-                                                                                <td class="p-4 text-center">
-                                                                                    <button onclick="openModal(${emp.id}, '${emp.name}', '${emp.email}')" class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
-                                                                                        <i class="fas fa-edit"></i>
-                                                                                    </button>
-                                                                                    <button onclick="toggleEmployeeStatus(${emp.id}, '${emp.status}')" class="hover:opacity-70 transition mr-3" title="${lockTitle}">
-                                                                                        <i class="fas ${lockIcon}"></i>
-                                                                                    </button>
-                                                                                    <button onclick="deletePermanent(${emp.id})" class="text-red-500 hover:text-red-700" title="Xóa vĩnh viễn">
-                                                                                        <i class="fas fa-trash"></i>
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>`;
+                                                                                                                    <tr class="border-b hover:bg-gray-50 ${emp.status === 'inactive' ? 'bg-gray-50' : ''}">
+                                                                                                                        <td class="p-4 text-gray-700 font-medium">${stt}</td> 
+                                                                                                                        <td class="p-4 font-semibold ${emp.status === 'inactive' ? 'text-gray-400' : 'text-gray-800'}">${emp.name}</td>
+                                                                                                                        <td class="p-4 text-gray-600">${emp.email}</td>
+                                                                                                                        <td class="p-4 text-center">${statusBadge}</td>
+                                                                                                                        <td class="p-4 text-center">
+                                                                                                                            <button onclick="openModal(${emp.id}, '${emp.name}', '${emp.email}')" class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
+                                                                                                                                <i class="fas fa-edit"></i>
+                                                                                                                            </button>
+                                                                                                                            <button onclick="toggleEmployeeStatus(${emp.id}, '${emp.status}')" class="hover:opacity-70 transition mr-3" title="${lockTitle}">
+                                                                                                                                <i class="fas ${lockIcon}"></i>
+                                                                                                                            </button>
+                                                                                                                            <button onclick="deletePermanent(${emp.id})" class="text-red-500 hover:text-red-700" title="Xóa vĩnh viễn">
+                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                            </button>
+                                                                                                                        </td>
+                                                                                                                    </tr>`;
                     });
 
                     document.getElementById('totalItems').innerText = res.total;
-                    renderPagination(res.last_page, res.current_page);
+                    paginator.render(res.last_page, res.current_page);
                 });
-        }
-
-        // Hàm vẽ nút chuyển trang
-        function renderPagination(lastPage, currPage) {
-            const paginationDiv = document.getElementById('pagination');
-            paginationDiv.innerHTML = '';
-
-            for (let i = 1; i <= lastPage; i++) {
-                const btn = document.createElement('button');
-                btn.innerText = i;
-                btn.className = `px-3 py-1 rounded border ${i === currPage ? 'bg-green-400 text-white' : 'bg-white text-gray-600'}`;
-                btn.onclick = () => loadEmployees(i, searchKeyword);
-                paginationDiv.appendChild(btn);
-            }
         }
 
         // Xử lý sự kiện gõ phím để tìm kiếm 

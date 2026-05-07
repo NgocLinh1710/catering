@@ -7,12 +7,13 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Admin\CompanyApprovalController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\IngredientController;
 
+// Public Routes
 Route::post('/login', [AuthController::class, 'login']);
-
-// API để Công ty Đăng ký
 Route::post('/register-company', [CompanyRegistrationController::class, 'store']);
 
+// Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/user', function (Request $request) {
@@ -21,14 +22,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Quản lý món ăn (Chỉ user đã đăng nhập mới được dùng API này)
+    Route::apiResource('ingredients', IngredientController::class);
+
     Route::apiResource('dishes', DishController::class);
 
-    // Quản lý nhân viên (Chỉ nội bộ công ty)
-    Route::get('/employees', [EmployeeController::class, 'index']);
-    Route::post('/employees', [EmployeeController::class, 'store']);
     Route::apiResource('employees', EmployeeController::class);
     Route::patch('employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
 });
 
+// Admin Route
 Route::post('/admin/approve-company/{id}', [CompanyApprovalController::class, 'approve']);
