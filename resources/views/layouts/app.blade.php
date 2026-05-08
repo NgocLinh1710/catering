@@ -30,6 +30,11 @@
                 <i class="fas fa-th-large w-6"></i> Tổng quan
             </a>
 
+            <a href="/quan-ly-khach-hang" id="menu-units"
+                class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-don-vi') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-building w-6"></i>Khách hàng
+            </a>
+
             <a href="/quan-ly-nhan-vien" id="menu-employees"
                 class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-nhan-vien') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
                 <i class="fas fa-users w-6"></i> Nhân sự
@@ -101,7 +106,6 @@
                     return response.json();
                 })
                 .then(user => {
-                    // Hiển thị thông tin user lên Header
                     document.getElementById('userNameDisplay').innerText = user.name;
                     document.getElementById('userRoleDisplay').innerText = user.role;
                     document.getElementById('userAvatarDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=86efac&color=1f2937`;
@@ -110,8 +114,15 @@
                     const overviewBtn = document.getElementById('menu-overview');
 
                     // Ẩn tất cả menu trước khi check role để tránh bị chồng chéo
-                    const allMenus = ['menu-overview', 'menu-companies', 'menu-ingredients', 'menu-dishes', 'menu-employees', 'menu-planning'];
-                    allMenus.forEach(id => {
+                    const allMenus = [
+                        'menu-overview',
+                        'menu-companies',
+                        'menu-ingredients',
+                        'menu-dishes',
+                        'menu-employees',
+                        'menu-planning',
+                        'menu-units'
+                    ]; allMenus.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.style.display = 'none';
                     });
@@ -123,7 +134,12 @@
                     }
                     else if (role === 'company' || role === 'company_admin') {
                         overviewBtn.href = "/cong-ty/tong-quan"; // Link Dashboard Công ty 
-                        showMenu(['menu-overview', 'menu-employees', 'menu-ingredients']);
+                        showMenu([
+                            'menu-overview',
+                            'menu-units',
+                            'menu-employees',
+                            'menu-ingredients'
+                        ]);
                     }
                     else if (role === 'employee') {
                         showMenu(['menu-dishes', 'menu-planning']);

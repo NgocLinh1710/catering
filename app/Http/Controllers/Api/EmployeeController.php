@@ -17,6 +17,10 @@ class EmployeeController extends Controller
         $query = User::where('role', 'employee')
             ->where('company_id', $companyId);
 
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
         // Tìm kiếm:
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -31,7 +35,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $employees->items(), // Lấy danh sách nhân viên
+            'data' => $employees->items(),
             'current_page' => $employees->currentPage(),
             'last_page' => $employees->lastPage(),
             'total' => $employees->total(),
@@ -55,7 +59,8 @@ class EmployeeController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'employee',
-            'company_id' => $companyId
+            'company_id' => $companyId,
+            'status' => 'active'
         ]);
 
         return response()->json([
@@ -71,21 +76,18 @@ class EmployeeController extends Controller
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id ?? $currentUser->id;
 
-        // Tìm đúng nhân viên thuộc công ty mình
         $employee = User::where('id', $id)
             ->where('company_id', $companyId)
             ->firstOrFail();
 
         $request->validate([
             'name' => 'required|string|max:255',
-            // Email duy nhất nhưng ngoại trừ ID hiện tại
             'email' => 'required|email|unique:users,email,' . $id,
         ]);
 
         $employee->name = $request->name;
         $employee->email = $request->email;
 
-        // Nếu có nhập mật khẩu mới thì mới đổi
         if ($request->filled('password')) {
             $employee->password = Hash::make($request->password);
         }
@@ -101,7 +103,13 @@ class EmployeeController extends Controller
     // Hàm Khóa/Mở khóa (Cập nhật status)
     public function toggleStatus($id)
     {
-        $employee = User::where('id', $id)->firstOrFail();
+        $currentUser = auth()->user();
+        $companyId = $currentUser->company_id ?? $currentUser->id;
+
+        $employee = User::where('id', $id)
+            ->where('company_id', $companyId)
+            ->firstOrFail();
+
         $employee->status = ($employee->status === 'inactive') ? 'active' : 'inactive';
         $employee->save();
 
@@ -114,7 +122,13 @@ class EmployeeController extends Controller
     // Xóa tài khoản nhân viên vĩnh viễn
     public function destroy($id)
     {
-        $employee = User::where('id', $id)->firstOrFail();
+        $currentUser = auth()->user();
+        $companyId = $currentUser->company_id ?? $currentUser->id;
+
+        $employee = User::where('id', $id)
+            ->where('company_id', $companyId)
+            ->firstOrFail();
+
         $employee->delete();
 
         return response()->json([

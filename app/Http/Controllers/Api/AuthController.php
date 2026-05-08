@@ -19,7 +19,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Kiểm tra user có tồn tại và pass có khớp không
+        // Sai tài khoản hoặc mật khẩu
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 'error',
@@ -27,14 +27,21 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Tài khoản bị khóa
+        if ($user->status !== 'active') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tài khoản của bạn đã bị khóa!'
+            ], 403);
+        }
+
         // Tạo token
         $token = $user->createToken('CateringAppToken')->plainTextToken;
 
-        // Trả về cho FE
         return response()->json([
             'status' => 'success',
             'message' => 'Đăng nhập thành công',
-            'user' => $user, // Frontend sẽ dùng cái này để check user.role
+            'user' => $user,
             'access_token' => $token
         ]);
     }
@@ -42,7 +49,6 @@ class AuthController extends Controller
     // Hàm logout
     public function logout(Request $request)
     {
-        // Hủy toàn bộ token hiện tại của User
         $request->user()->tokens()->delete();
 
         return response()->json([

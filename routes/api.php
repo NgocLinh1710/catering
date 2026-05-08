@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Admin\CompanyApprovalController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\IngredientController;
+use App\Http\Controllers\Api\UnitController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,6 +29,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('employees', EmployeeController::class);
     Route::patch('employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
+
+    Route::apiResource('units', UnitController::class);
+    Route::post('units/{id}/assign-employees', [UnitController::class, 'assignEmployees']);
+    Route::get('my-assigned-units', [UnitController::class, 'getMyAssignedUnits']);
 });
 
 // Admin Route

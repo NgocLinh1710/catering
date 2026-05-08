@@ -48,4 +48,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function units()
+    {
+        return $this->belongsToMany(Unit::class, 'unit_user');
+    }
 }

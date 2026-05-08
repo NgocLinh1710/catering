@@ -25,6 +25,10 @@ Route::get('/cong-ty/tong-quan', function () {
     return view('company.dashboard');
 });
 
+Route::get('/quan-ly-khach-hang', function () {
+    return view('units');
+})->name('units.index');
+
 Route::get('/quan-ly-nguyen-lieu', function () {
     return view('ingredients');
 });
