@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Ingredient extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'company_id',
         'name',
@@ -17,7 +18,7 @@ class Ingredient extends Model
         'lipid',
         'glucid',
         'fiber',
-        'price_per_kg',
+        'price_per_kg', // Đây là giá hiện hành
         'tags'
     ];
 
@@ -29,7 +30,25 @@ class Ingredient extends Model
     public function dishes()
     {
         return $this->belongsToMany(Dish::class, 'dish_ingredients')
-            ->withPivot('quantity')
+            ->withPivot('weight')
             ->withTimestamps();
+    }
+
+    public function prices()
+    {
+        return $this->hasMany(IngredientPrice::class);
+    }
+
+    public function getPriceAtDate($date)
+    {
+        // Tìm bản ghi giá có ngày áp dụng gần nhất nhưng không vượt quá ngày cần tra cứu
+        $historicalPrice = $this->prices()
+            ->where('applied_date', '<=', $date)
+            ->orderBy('applied_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        // Nếu tìm thấy giá trong lịch sử thì lấy, không thì lấy giá hiện hành (price_per_kg)
+        return $historicalPrice ? $historicalPrice->price : $this->price_per_kg;
     }
 }

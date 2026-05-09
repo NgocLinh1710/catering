@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    Route::post('/ingredients/update-price', [IngredientController::class, 'updatePrice']);
     Route::apiResource('ingredients', IngredientController::class);
 
     Route::apiResource('dishes', DishController::class);
