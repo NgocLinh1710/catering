@@ -3,19 +3,36 @@
 @section('title', 'Quản lý Món ăn')
 @section('page_title', 'Kho Món Ăn Chế Biến')
 @section('content')
+    <div class="flex justify-between items-center mb-6">
+        <div class="relative w-1/3">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                <i class="fas fa-search text-gray-400"></i>
+            </span>
+            <input type="text" id="searchInput" placeholder="Tìm tên món ăn..."
+                class="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-green-400 transition">
+        </div>
+
+        <button onclick="openDishModal()"
+            class="bg-[#86efac] text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-green-400 transition shadow-md">
+            <i class="fas fa-plus mr-2"></i>Tạo Món Ăn Mới
+        </button>
+    </div>
+
     <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-sm border">
         <div class="flex justify-between items-center mb-6">
             <h3 class="font-bold text-gray-700 uppercase"><i class="fas fa-utensils mr-2"></i>Danh sách món ăn</h3>
-            <button onclick="openDishModal()"
-                class="bg-[#86efac] text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-green-400 transition shadow-md">
-                <i class="fas fa-plus mr-2"></i>Tạo Món Ăn Mới
-            </button>
         </div>
 
         <div id="dish-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="col-span-3 text-center py-10 text-gray-400 italic">
                 <i class="fas fa-spinner fa-spin mr-2"></i> Đang tải thực đơn...
             </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-6">
+            <p id="dish-count" class="text-sm text-gray-500 font-medium"></p>
+
+            <div id="pagination" class="flex space-x-2"></div>
         </div>
     </div>
 
@@ -99,13 +116,28 @@
             }
         }
 
-        async function loadDishes() {
+        let typingTimer;
+
+        // Tìm kiếm
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            clearTimeout(typingTimer);
+            const searchTerm = this.value;
+            typingTimer = setTimeout(() => {
+                loadDishes(searchTerm); // Gọi lại hàm tải danh sách với từ khóa
+            }, 500);
+        });
+
+        async function loadDishes(search = '', page = 1) {
             const listContainer = document.getElementById('dish-list');
             try {
-                const res = await fetch('/api/dishes', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const dishes = await res.json();
+                const res = await fetch(
+                    `/api/dishes?page=${page}&search=${encodeURIComponent(search)}`,
+                    {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    }
+                );
+                const response = await res.json();
+                const dishes = response.data;
 
                 if (dishes.length === 0) {
                     listContainer.innerHTML = `<div class="col-span-3 text-center py-10 text-gray-400 italic">Chưa có món ăn nào được tạo.</div>`;
@@ -119,37 +151,104 @@
                         : '<span class="text-[10px] text-gray-400 italic">Không có cảnh báo</span>';
 
                     return `
-                                        <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
-                                            <div class="p-4">
-                                                <div class="flex justify-between items-start mb-2">
-                                                    <h4 class="font-bold text-gray-800 group-hover:text-green-600 transition">${dish.name}</h4>
-                                                    <div class="flex space-x-2">
-                                                        <button onclick="editDish(${dish.id})" class="text-gray-300 hover:text-blue-500 transition">
-                                                            <i class="fas fa-edit text-sm"></i>
-                                                        </button>
-                                                        <button onclick="deleteDish(${dish.id})" class="text-gray-300 hover:text-red-500 transition">
-                                                            <i class="fas fa-trash-alt text-sm"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="flex flex-wrap gap-1 mb-3">${tagHtml}</div>
-                                                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
-                                                        <div class="flex flex-col">
-                                                            <span class="text-gray-400">Năng lượng</span>
-                                                            <span class="font-bold text-orange-600">${Math.round(dish.total_calories)} Kcal</span>
-                                                        </div>
-                                                        <div class="flex flex-col">
-                                                            <span class="text-gray-400">Giá vốn/suất</span>
-                                                            <span class="font-bold text-blue-600">${Math.round(dish.estimated_cost).toLocaleString()}đ</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            `;
+                                                                                                        <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
+                                                                                                            <div class="p-4">
+                                                                                                                <div class="flex justify-between items-start mb-2">
+                                                                                                                    <h4 class="font-bold text-gray-800 group-hover:text-green-600 transition">${dish.name}</h4>
+                                                                                                                    <div class="flex space-x-2">
+                                                                                                                        <button onclick="editDish(${dish.id})" class="text-gray-300 hover:text-blue-500 transition">
+                                                                                                                            <i class="fas fa-edit text-sm"></i>
+                                                                                                                        </button>
+                                                                                                                        <button onclick="deleteDish(${dish.id})" class="text-gray-300 hover:text-red-500 transition">
+                                                                                                                            <i class="fas fa-trash-alt text-sm"></i>
+                                                                                                                        </button>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                                <div class="flex flex-wrap gap-1 mb-3">${tagHtml}</div>
+                                                                                                                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+                                                                                                                        <div class="flex flex-col">
+                                                                                                                            <span class="text-gray-400">Năng lượng</span>
+                                                                                                                            <span class="font-bold text-orange-600">${Math.round(dish.total_calories)} Kcal</span>
+                                                                                                                        </div>
+                                                                                                                        <div class="flex flex-col">
+                                                                                                                            <span class="text-gray-400">Giá vốn/suất</span>
+                                                                                                                            <span class="font-bold text-blue-600">${Math.round(dish.estimated_cost).toLocaleString()}đ</span>
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                            `;
                 }).join('');
+                renderPagination(response, search);
             } catch (err) {
                 listContainer.innerHTML = `<p class="text-red-500 text-center col-span-3">Lỗi khi tải danh sách món!</p>`;
             }
+        }
+
+        function renderPagination(response, search = '') {
+            const pagination = document.getElementById('pagination');
+            const dishCount = document.getElementById('dish-count');
+
+            // Hiển thị tổng số món
+            dishCount.innerHTML = `Có <b>${response.total}</b> món ăn`;
+
+            let html = '';
+
+            // <<
+            html += `
+        <button
+            onclick="loadDishes('${search}', 1)"
+            ${response.current_page === 1 ? 'disabled' : ''}
+            class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+            &laquo;
+        </button>
+        `;
+
+            // <
+            html += `
+        <button
+            onclick="loadDishes('${search}', ${response.current_page - 1})"
+            ${response.current_page === 1 ? 'disabled' : ''}
+            class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+            &lt;
+        </button>
+        `;
+
+            // số trang
+            for (let i = 1; i <= response.last_page; i++) {
+                html += `
+            <button
+                onclick="loadDishes('${search}', ${i})"
+                class="px-3 py-1 rounded border ${i === response.current_page
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white hover:bg-gray-100'
+                    }">
+                ${i}
+            </button>
+            `;
+            }
+
+            // >
+            html += `
+        <button
+            onclick="loadDishes('${search}', ${response.current_page + 1})"
+            ${response.current_page === response.last_page ? 'disabled' : ''}
+            class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+            &gt;
+        </button>
+        `;
+
+            // >>
+            html += `
+        <button
+            onclick="loadDishes('${search}', ${response.last_page})"
+            ${response.current_page === response.last_page ? 'disabled' : ''}
+            class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+            &raquo;
+        </button>
+        `;
+
+            pagination.innerHTML = html;
         }
 
         function addIngredientRow() {
@@ -157,23 +256,23 @@
             const row = document.createElement('div');
             row.className = "flex space-x-2 items-center ing-row bg-white p-2 rounded-lg border border-gray-100 shadow-sm";
             row.innerHTML = `
-                                                    <select class="flex-1 border-none bg-transparent p-1 rounded text-sm ing-select focus:ring-0" onchange="calculateNutrients()">
-                                                        <option value="">-- Chọn thực phẩm --</option>
-                                                        ${allIngredients.map(i => `<option value="${i.id}" data-calo="${i.calories}" data-price="${i.price_per_kg}">${i.name}</option>`).join('')}
-                                                    </select>
+                                                                                                                    <select class="flex-1 border-none bg-transparent p-1 rounded text-sm ing-select focus:ring-0" onchange="calculateNutrients()">
+                                                                                                                        <option value="">-- Chọn thực phẩm --</option>
+                                                                                                                        ${allIngredients.map(i => `<option value="${i.id}" data-calo="${i.calories}" data-price="${i.price_per_kg}">${i.name}</option>`).join('')}
+                                                                                                                    </select>
 
-                                                    <div class="flex items-center bg-gray-100 px-2 rounded-md">
-                                                        <input type="number" step="any" placeholder="0" class="w-16 bg-transparent border-none p-1 text-sm ing-weight focus:ring-0 text-right" oninput="calculateNutrients()">
-                                                        <select class="text-[10px] bg-transparent border-none font-bold ml-1 focus:ring-0 ing-unit" onchange="calculateNutrients()">
-                                                            <option value="kg">kg</option>
-                                                            <option value="g">gam</option>
-                                                        </select>
-                                                    </div>
+                                                                                                                    <div class="flex items-center bg-gray-100 px-2 rounded-md">
+                                                                                                                        <input type="number" step="any" placeholder="0" class="w-16 bg-transparent border-none p-1 text-sm ing-weight focus:ring-0 text-right" oninput="calculateNutrients()">
+                                                                                                                        <select class="text-[10px] bg-transparent border-none font-bold ml-1 focus:ring-0 ing-unit" onchange="calculateNutrients()">
+                                                                                                                            <option value="kg">kg</option>
+                                                                                                                            <option value="g">gam</option>
+                                                                                                                        </select>
+                                                                                                                    </div>
 
-                                                    <button type="button" onclick="this.parentElement.remove(); calculateNutrients()" class="text-gray-300 hover:text-red-500 px-2 transition">
-                                                        <i class="fas fa-minus-circle"></i>
-                                                    </button>
-                                                `;
+                                                                                                                    <button type="button" onclick="this.parentElement.remove(); calculateNutrients()" class="text-gray-300 hover:text-red-500 px-2 transition">
+                                                                                                                        <i class="fas fa-minus-circle"></i>
+                                                                                                                    </button>
+                                                                                                                `;
             container.appendChild(row);
         }
 

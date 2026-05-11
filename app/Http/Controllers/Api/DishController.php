@@ -9,15 +9,29 @@ use Illuminate\Support\Facades\DB;
 
 class DishController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
+        $search = $request->query('search');
 
-        // Lấy danh sách món ăn kèm nguyên liệu và tự động tính thêm allergy_tags
-        $dishes = Dish::with('ingredients')
-            ->where('company_id', $companyId)
+        $query = Dish::with('ingredients')
+            ->where('company_id', $companyId);
+
+        // Tìm kiếm theo tên món
+        if (!empty($search)) {
+            $query->where('name', 'LIKE', '%' . $search . '%');
+        }
+
+        // PHÂN TRANG
+        $dishes = $query
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(12);
+
+        // append allergy_tags
+        $dishes->getCollection()->transform(function ($dish) {
+            $dish->allergy_tags = $dish->allergy_tags;
+            return $dish;
+        });
 
         return response()->json($dishes);
     }
@@ -68,6 +82,32 @@ class DishController extends Controller
         return response()->json($dish);
     }
 
+    public function update(Request $request, $id)
+    {
+        $dish = Dish::findOrFail($id);
+
+        return DB::transaction(function () use ($request, $dish) {
+            // Cập nhật tên món
+            $dish->update(['name' => $request->name]);
+
+            // Làm mới bảng trung gian
+            $dish->ingredients()->detach();
+
+            foreach ($request->ingredients as $item) {
+                $dish->ingredients()->attach($item['id'], ['weight' => $item['weight']]);
+            }
+
+            // Tính toán lại toàn bộ chỉ số sau khi sửa
+            $dish->recalculateNutrition();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Cập nhật món thành công',
+                'dish' => $dish->load('ingredients')
+            ]);
+        });
+    }
+
     public function destroy($id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
@@ -78,24 +118,5 @@ class DishController extends Controller
         $dish->delete();
 
         return response()->json(['message' => 'Xóa món ăn thành công']);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $dish = Dish::findOrFail($id);
-
-        return DB::transaction(function () use ($request, $dish) {
-            $dish->update(['name' => $request->name]);
-
-            $dish->ingredients()->detach();
-
-            foreach ($request->ingredients as $item) {
-                $dish->ingredients()->attach($item['id'], ['weight' => $item['weight']]);
-            }
-
-            $dish->recalculateNutrition();
-
-            return response()->json(['status' => 'success', 'message' => 'Cập nhật món thành công']);
-        });
     }
 }
