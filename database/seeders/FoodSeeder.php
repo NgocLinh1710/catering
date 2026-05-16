@@ -10,7 +10,7 @@ class FoodSeeder extends Seeder
 {
     public function run(): void
     {
-        $companyId = 3;
+        $companyId = 1;
 
         // Tạo dữ liệu thực phẩm (Ingredients)
         $gao = Ingredient::updateOrCreate(
@@ -22,7 +22,7 @@ class FoodSeeder extends Seeder
                 'lipid' => 0.3,
                 'glucid' => 28,
                 'fiber' => 0.4,
-                'current_price' => 18000,
+                'price_per_kg' => 18000,
                 'tags' => ['vegan', 'starch']
             ]
         );
@@ -36,7 +36,7 @@ class FoodSeeder extends Seeder
                 'lipid' => 14,
                 'glucid' => 0,
                 'fiber' => 0,
-                'current_price' => 65000,
+                'price_per_kg' => 65000,
                 'tags' => ['meat', 'halal']
             ]
         );
@@ -45,11 +45,12 @@ class FoodSeeder extends Seeder
         $comGa = Dish::create([
             'company_id' => $companyId,
             'name' => 'Cơm gà luộc',
+            'created_by' => 1,
             'category' => 'Món chính',
             'price' => 35000,
             'instructions' => 'Nấu cơm chín, gà luộc thái miếng vừa ăn.',
-            'calories' => 500,
-            'protein' => 30.0,
+            'total_calories' => 500,
+            'total_protein' => 30.0,
             'lipid' => 15.0,
             'glucid' => 45.0,
             'dish_tags' => ['meat', 'halal', 'starch']
@@ -58,8 +59,8 @@ class FoodSeeder extends Seeder
         // Ghép thực phẩm vào món ăn (Bảng trung gian)
         if (method_exists($comGa, 'ingredients')) {
             $comGa->ingredients()->attach([
-                $gao->id => ['quantity' => 0.15],
-                $thitGa->id => ['quantity' => 0.1],
+                $gao->id => ['weight' => 0.15],
+                $thitGa->id => ['weight' => 0.1],
             ]);
         }
 

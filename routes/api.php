@@ -33,7 +33,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('units', UnitController::class);
     Route::post('units/{id}/assign-employees', [UnitController::class, 'assignEmployees']);
-    Route::get('my-assigned-units', [UnitController::class, 'getMyAssignedUnits']);
+    Route::get('my-thiet-lap-tieu-chuan', [UnitController::class, 'getMyAssignedUnits']);
+    Route::post('/units/{id}/toggle-status', [UnitController::class, 'toggleStatus']);
+
+    // Quản lý Đối tượng ăn & Tiêu chuẩn
+    Route::get('units/{unitId}/target-audiences', [TargetAudienceController::class, 'index']);
+    Route::apiResource('target-audiences', TargetAudienceController::class)->except(['index']);
 });
 
 // Admin Route

@@ -11,16 +11,21 @@ class Dish extends Model
         'name',
         'company_id',
         'created_by',
+        'category',
+        'price',
+        'instructions',
         'total_calories',
         'total_protein',
-        'estimated_cost',
-        'calories',
-        'protein',
         'lipid',
-        'glucid'
+        'glucid',
+        'dish_tags',
+        'estimated_cost'
     ];
 
     protected $appends = ['allergy_tags'];
+    protected $casts = [
+        'dish_tags' => 'array',
+    ];
 
     /**
      * Quan hệ n-n với bảng ingredients
@@ -98,8 +103,6 @@ class Dish extends Model
             'total_calories' => $calories,
             'total_protein' => $protein,
             'estimated_cost' => $this->calculateCostAtDate(),
-            'calories' => $calories,
-            'protein' => $protein,
             'lipid' => $lipid,
             'glucid' => $glucid,
         ]);

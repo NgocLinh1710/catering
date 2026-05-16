@@ -12,14 +12,9 @@ return new class extends Migration {
     {
         Schema::create('dish_ingredients', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('dish_id')->constrained('dishes')->onDelete('cascade');
-
             $table->foreignId('ingredient_id')->constrained('ingredients')->onDelete('cascade');
-
-            // Định lượng của nguyên liệu đó trong món ăn (VD: 0.5 kg)
-            $table->decimal('quantity', 8, 3);
-
+            $table->decimal('weight', 8, 3); // Khối lượng nguyên liệu (kg)
             $table->timestamps();
         });
     }

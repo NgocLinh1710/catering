@@ -31,7 +31,7 @@
             </a>
 
             <a href="/quan-ly-khach-hang" id="menu-units"
-                class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-don-vi') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                class="menu-item items-center px-4 py-3 {{ Request::is('quan-ly-khach-hang') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
                 <i class="fas fa-building w-6"></i>Khách hàng
             </a>
 
@@ -50,8 +50,13 @@
                 <i class="fas fa-utensils w-6"></i> Kho Món ăn
             </a>
 
+            <a href="/thiet-lap-tieu-chuan" id="menu-standard"
+                class="menu-item items-center px-4 py-3 {{ Request::is('thiet-lap-tieu-chuan*') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                <i class="fas fa-sliders-h w-6"></i> Thiết lập tiêu chuẩn
+            </a>
+
             <a href="/lap-thuc-don" id="menu-planning"
-                class="menu-item items-center px-4 py-3 {{ Request::is('lap-thuc-don') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
+                class="menu-item items-center px-4 py-3 {{ Request::is('lap-thuc-don*') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
                 <i class="fas fa-calendar-check w-6"></i> Lập Thực đơn
             </a>
 
@@ -121,7 +126,8 @@
                         'menu-dishes',
                         'menu-employees',
                         'menu-planning',
-                        'menu-units'
+                        'menu-units',
+                        'menu-standard'
                     ]; allMenus.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.style.display = 'none';
@@ -142,7 +148,7 @@
                         ]);
                     }
                     else if (role === 'employee') {
-                        showMenu(['menu-dishes', 'menu-planning']);
+                        showMenu(['menu-dishes', 'menu-standard', 'menu-planning']);
                     }
 
                     if (typeof loadData === 'function') loadData();

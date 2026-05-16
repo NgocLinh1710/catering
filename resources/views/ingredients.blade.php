@@ -202,36 +202,36 @@
                         : '';
 
                     return `
-                                        <tr class="border-b hover:bg-gray-50 transition group text-sm">
-                                            <td class="p-4">
-                                                <div class="flex flex-col">
-                                                    <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
-                                                    <div class="mt-1">${tagHtml}</div>
-                                                    <span class="text-[10px] text-gray-400 font-normal italic mt-1">
-                                                        Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
-                                            <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
-                                            <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
-                                            <td class="p-4 text-center">
-                                                <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
-                                                    class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
-                                                    <i class="fas fa-history"></i>
-                                                </button>
-                                            </td>
-                                            <td class="p-4 text-center">
-                                                <div class="flex justify-center space-x-2">
-                                                    <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>`;
+                                                <tr class="border-b hover:bg-gray-50 transition group text-sm">
+                                                    <td class="p-4">
+                                                        <div class="flex flex-col">
+                                                            <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
+                                                            <div class="mt-1">${tagHtml}</div>
+                                                            <span class="text-[10px] text-gray-400 font-normal italic mt-1">
+                                                                Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
+                                                    <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
+                                                    <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
+                                                    <td class="p-4 text-center">
+                                                        <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
+                                                            class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
+                                                            <i class="fas fa-history"></i>
+                                                        </button>
+                                                    </td>
+                                                    <td class="p-4 text-center">
+                                                        <div class="flex justify-center space-x-2">
+                                                            <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>`;
                 }).join('');
 
                 paginator.render(result.last_page, result.current_page);

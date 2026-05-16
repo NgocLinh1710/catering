@@ -9,32 +9,38 @@ use App\Models\User;
 
 class UnitController extends Controller
 {
-    // Lấy danh sách đơn vị của công ty
+    // Lấy danh sách khách hàng của công ty
     public function index(Request $request)
     {
         $company_id = auth()->user()->company_id ?? auth()->user()->id;
-
         $search = $request->search;
 
-        $units = Unit::with('employees:id,name,status')
+        $query = Unit::with('employees:id,name,status')
             ->where('company_id', $company_id)
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%');
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(5);
+            });
 
-        return response()->json($units);
+        // Phân trang 10 items
+        $units = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $units->items(),
+            'current_page' => $units->currentPage(),
+            'last_page' => $units->lastPage(),
+            'total' => $units->total(),
+        ]);
     }
 
-    // Thêm đơn vị mới
+    // Thêm khách hàng mới
     public function store(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
             'avg_meals_per_day' => 'nullable|integer',
-            'employee_ids' => 'nullable|array', // Thêm dòng này
+            'employee_ids' => 'nullable|array',
             'employee_ids.*' => 'exists:users,id'
         ]);
 
@@ -49,7 +55,7 @@ class UnitController extends Controller
         return response()->json($unit->load('employees'), 201);
     }
 
-    // Cập nhật thông tin đơn vị
+    // Cập nhật thông tin khách hàng
     public function update(Request $request, $id)
     {
         $company_id = auth()->user()->company_id ?? auth()->user()->id;
@@ -58,16 +64,23 @@ class UnitController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
-            'avg_meals_per_day' => 'nullable|integer',
-            'meal_price' => 'required|numeric',
-            'status' => 'required|in:active,inactive'
+            'employee_ids' => 'nullable|array',
+            'employee_ids.*' => 'exists:users,id'
         ]);
 
-        $unit->update($data);
-        return response()->json($unit);
+        $unit->update([
+            'name' => $data['name'],
+            'address' => $data['address']
+        ]);
+
+        if (isset($request->employee_ids)) {
+            $unit->employees()->sync($request->employee_ids);
+        }
+
+        return response()->json($unit->load('employees'));
     }
 
-    // Hàm phân công nhân viên vào đơn vị
+    // Hàm phân công nhân viên vào khách hàng
     public function assignEmployees(Request $request, $id)
     {
         $company_id = auth()->user()->company_id ?? auth()->user()->id;
@@ -91,7 +104,7 @@ class UnitController extends Controller
     {
         $user = auth()->user();
 
-        // Lấy danh sách đơn vị thông qua quan hệ n-n đã định nghĩa ở User Model
+        // Lấy danh sách khách hàng thông qua quan hệ n-n đã định nghĩa ở User Model
         $units = $user->units()->where('status', 'active')->get();
 
         return response()->json($units);
@@ -103,5 +116,20 @@ class UnitController extends Controller
         $unit = Unit::where('company_id', $company_id)->findOrFail($id);
         $unit->delete();
         return response()->json(['message' => 'Xóa đơn vị thành công']);
+    }
+
+    public function toggleStatus(Request $request, $id)
+    {
+        $company_id = auth()->user()->company_id ?? auth()->user()->id;
+        $unit = Unit::where('company_id', $company_id)->findOrFail($id);
+
+        $unit->update([
+            'status' => $request->status // 'active' hoặc 'inactive'
+        ]);
+
+        return response()->json([
+            'message' => 'Cập nhật trạng thái thành công',
+            'status' => $unit->status
+        ]);
     }
 }

@@ -13,7 +13,18 @@ class Unit extends Model
         'avg_meals_per_day',
         'status'
     ];
+
     public function employees()
+    {
+        return $this->belongsToMany(User::class, 'unit_user', 'unit_id', 'user_id');
+    }
+
+    public function targetAudiences()
+    {
+        return $this->hasMany(TargetAudience::class);
+    }
+
+    public function assignedEmployees()
     {
         return $this->belongsToMany(User::class, 'unit_user', 'unit_id', 'user_id');
     }

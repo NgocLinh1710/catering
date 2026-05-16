@@ -41,6 +41,10 @@ Route::get('/quan-ly-mon-an', function () {
     return view('dishes');
 });
 
+Route::get('/thiet-lap-tieu-chuan', function () {
+    return view('assigned_units');
+});
+
 Route::get('/lap-thuc-don', function () {
     return view('planning');
 });
