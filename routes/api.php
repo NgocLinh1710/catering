@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\CompanyApprovalController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\IngredientController;
 use App\Http\Controllers\Api\UnitController;
+use App\Http\Controllers\Api\TargetAudienceController;
+use App\Http\Controllers\Api\DailyMenuController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,7 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ingredients/update-price', [IngredientController::class, 'updatePrice']);
     Route::apiResource('ingredients', IngredientController::class);
 
+    // Quản lý món ăn
     Route::apiResource('dishes', DishController::class);
+    Route::get('quan-ly-mon-an', [DishController::class, 'index']);
 
     Route::apiResource('employees', EmployeeController::class);
     Route::patch('employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);
@@ -39,6 +43,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Quản lý Đối tượng ăn & Tiêu chuẩn
     Route::get('units/{unitId}/target-audiences', [TargetAudienceController::class, 'index']);
     Route::apiResource('target-audiences', TargetAudienceController::class)->except(['index']);
+
+    // Quản lý Thực đơn mỗi ngày
+    Route::get('daily-menus/by-date', [DailyMenuController::class, 'getMenuByDate']);
+    Route::post('daily-menus', [DailyMenuController::class, 'store']);
 });
 
 // Admin Route

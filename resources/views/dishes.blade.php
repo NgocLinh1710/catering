@@ -52,10 +52,34 @@
                         class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-400 transition">
                 </div>
 
+                <div>
+                    <label class="block text-sm font-bold mb-1 text-gray-700">Loại món ăn</label>
+                    <select id="dish_category" required
+                        class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-400 transition">
+                        <option value="">-- Chọn loại món ăn --</option>
+                        <option value="Món chính">Món chính</option>
+                        <option value="Món phụ">Món phụ</option>
+                        <option value="Canh">Canh</option>
+                        <option value="Khai vị">Khai vị</option>
+                        <option value="Tráng miệng">Tráng miệng</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold mb-1 text-gray-700">
+                        Số suất tạo ra
+                    </label>
+
+                    <input type="number" id="dish_servings" min="1" value="10" required placeholder="Ví dụ: 20 suất"
+                        class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-400 transition">
+
+                    <p class="text-xs text-gray-400 mt-1 italic"> </p>
+                </div>
+
                 <div class="border p-4 rounded-lg bg-gray-50">
                     <div class="flex justify-between items-center mb-3">
                         <label class="block text-sm font-bold text-green-700">Nguyên liệu thành phần</label>
-                        <span class="text-[10px] text-gray-500 italic">* Tính trên đơn vị kg</span>
+                        <span class="text-[10px] text-gray-500 italic">* Tính trên đơn vị kilogam hoặc gam</span>
                     </div>
 
                     <div id="ingredient-selectors" class="space-y-3">
@@ -150,34 +174,41 @@
                         ? dish.allergy_tags.map(tag => `<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold mr-1 border border-red-200">${tag}</span>`).join('')
                         : '<span class="text-[10px] text-gray-400 italic">Không có cảnh báo</span>';
 
+                    // Badge thể hiện Category
+                    const categoryHtml = dish.category
+                        ? `<span class="bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-md font-semibold border border-blue-100">${dish.category}</span>`
+                        : '';
+
                     return `
-                                                                                                                <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
-                                                                                                                    <div class="p-4">
-                                                                                                                        <div class="flex justify-between items-start mb-2">
-                                                                                                                            <h4 class="font-bold text-gray-800 group-hover:text-green-600 transition">${dish.name}</h4>
-                                                                                                                            <div class="flex space-x-2">
-                                                                                                                                <button onclick="editDish(${dish.id})" class="text-gray-300 hover:text-blue-500 transition">
-                                                                                                                                    <i class="fas fa-edit text-sm"></i>
-                                                                                                                                </button>
-                                                                                                                                <button onclick="deleteDish(${dish.id})" class="text-gray-300 hover:text-red-500 transition">
-                                                                                                                                    <i class="fas fa-trash-alt text-sm"></i>
-                                                                                                                                </button>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                        <div class="flex flex-wrap gap-1 mb-3">${tagHtml}</div>
-                                                                                                                            <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
-                                                                                                                                <div class="flex flex-col">
-                                                                                                                                    <span class="text-gray-400">Năng lượng</span>
-                                                                                                                                    <span class="font-bold text-orange-600">${Math.round(dish.total_calories)} Kcal</span>
-                                                                                                                                </div>
-                                                                                                                                <div class="flex flex-col">
-                                                                                                                                    <span class="text-gray-400">Giá vốn/suất</span>
-                                                                                                                                    <span class="font-bold text-blue-600">${Math.round(dish.estimated_cost).toLocaleString()}đ</span>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                    `;
+                                                            <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
+                                                                <div class="p-4">
+                                                                    <div class="flex justify-between items-start mb-2">
+                                                                        <div>
+                                                                            <h4 class="font-bold text-gray-800 group-hover:text-green-600 transition">${dish.name}</h4>
+                                                                            <div class="mt-1">${categoryHtml}</div> </div>
+                                                                        <div class="flex space-x-2">
+                                                                            <button onclick="editDish(${dish.id})" class="text-gray-300 hover:text-blue-500 transition">
+                                                                                <i class="fas fa-edit text-sm"></i>
+                                                                            </button>
+                                                                            <button onclick="deleteDish(${dish.id})" class="text-gray-300 hover:text-red-500 transition">
+                                                                                <i class="fas fa-trash-alt text-sm"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="flex flex-wrap gap-1 mb-3">${tagHtml}</div>
+                                                                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+                                                                        <div class="flex flex-col">
+                                                                            <span class="text-gray-400">Năng lượng</span>
+                                                                            <span class="font-bold text-orange-600">${Math.round(dish.calories_per_serving)} Kcal</span>
+                                                                        </div>
+                                                                        <div class="flex flex-col">
+                                                                            <span class="text-gray-400">Giá vốn/suất</span>
+                                                                            <span class="font-bold text-blue-600">${Math.round(dish.cost_per_serving).toLocaleString()}đ</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        `;
                 }).join('');
                 renderPagination(response, search);
             } catch (err) {
@@ -196,57 +227,57 @@
 
             // <<
             html += `
-                <button
-                    onclick="loadDishes('${search}', 1)"
-                    ${response.current_page === 1 ? 'disabled' : ''}
-                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                    &laquo;
-                </button>
-                `;
+                                                                                <button
+                                                                                    onclick="loadDishes('${search}', 1)"
+                                                                                    ${response.current_page === 1 ? 'disabled' : ''}
+                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                    &laquo;
+                                                                                </button>
+                                                                                `;
 
             // <
             html += `
-                <button
-                    onclick="loadDishes('${search}', ${response.current_page - 1})"
-                    ${response.current_page === 1 ? 'disabled' : ''}
-                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                    &lt;
-                </button>
-                `;
+                                                                                <button
+                                                                                    onclick="loadDishes('${search}', ${response.current_page - 1})"
+                                                                                    ${response.current_page === 1 ? 'disabled' : ''}
+                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                    &lt;
+                                                                                </button>
+                                                                                `;
 
             // số trang
             for (let i = 1; i <= response.last_page; i++) {
                 html += `
-                    <button
-                        onclick="loadDishes('${search}', ${i})"
-                        class="px-3 py-1 rounded border ${i === response.current_page
+                                                                                    <button
+                                                                                        onclick="loadDishes('${search}', ${i})"
+                                                                                        class="px-3 py-1 rounded border ${i === response.current_page
                         ? 'bg-green-500 text-white'
                         : 'bg-white hover:bg-gray-100'
                     }">
-                        ${i}
-                    </button>
-                    `;
+                                                                                        ${i}
+                                                                                    </button>
+                                                                                    `;
             }
 
             // >
             html += `
-                <button
-                    onclick="loadDishes('${search}', ${response.current_page + 1})"
-                    ${response.current_page === response.last_page ? 'disabled' : ''}
-                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                    &gt;
-                </button>
-                `;
+                                                                                <button
+                                                                                    onclick="loadDishes('${search}', ${response.current_page + 1})"
+                                                                                    ${response.current_page === response.last_page ? 'disabled' : ''}
+                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                    &gt;
+                                                                                </button>
+                                                                                `;
 
             // >>
             html += `
-                <button
-                    onclick="loadDishes('${search}', ${response.last_page})"
-                    ${response.current_page === response.last_page ? 'disabled' : ''}
-                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                    &raquo;
-                </button>
-                `;
+                                                                                <button
+                                                                                    onclick="loadDishes('${search}', ${response.last_page})"
+                                                                                    ${response.current_page === response.last_page ? 'disabled' : ''}
+                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                    &raquo;
+                                                                                </button>
+                                                                                `;
 
             pagination.innerHTML = html;
         }
@@ -256,23 +287,23 @@
             const row = document.createElement('div');
             row.className = "flex space-x-2 items-center ing-row bg-white p-2 rounded-lg border border-gray-100 shadow-sm";
             row.innerHTML = `
-                                                                                                                            <select class="flex-1 border-none bg-transparent p-1 rounded text-sm ing-select focus:ring-0" onchange="calculateNutrients()">
-                                                                                                                                <option value="">-- Chọn thực phẩm --</option>
-                                                                                                                                ${allIngredients.map(i => `<option value="${i.id}" data-calo="${i.calories}" data-price="${i.price_per_kg}">${i.name}</option>`).join('')}
-                                                                                                                            </select>
+                                                                                                                                                                                            <select class="flex-1 border-none bg-transparent p-1 rounded text-sm ing-select focus:ring-0" onchange="calculateNutrients()">
+                                                                                                                                                                                                <option value="">-- Chọn thực phẩm --</option>
+                                                                                                                                                                                                ${allIngredients.map(i => `<option value="${i.id}" data-calo="${i.calories}" data-price="${i.price_per_kg}">${i.name}</option>`).join('')}
+                                                                                                                                                                                            </select>
 
-                                                                                                                            <div class="flex items-center bg-gray-100 px-2 rounded-md">
-                                                                                                                                <input type="number" step="any" placeholder="0" class="w-16 bg-transparent border-none p-1 text-sm ing-weight focus:ring-0 text-right" oninput="calculateNutrients()">
-                                                                                                                                <select class="text-[10px] bg-transparent border-none font-bold ml-1 focus:ring-0 ing-unit" onchange="calculateNutrients()">
-                                                                                                                                    <option value="kg">kg</option>
-                                                                                                                                    <option value="g">gam</option>
-                                                                                                                                </select>
-                                                                                                                            </div>
+                                                                                                                                                                                            <div class="flex items-center bg-gray-100 px-2 rounded-md">
+                                                                                                                                                                                                <input type="number" step="any" placeholder="0" class="w-16 bg-transparent border-none p-1 text-sm ing-weight focus:ring-0 text-right" oninput="calculateNutrients()">
+                                                                                                                                                                                                <select class="text-[10px] bg-transparent border-none font-bold ml-1 focus:ring-0 ing-unit" onchange="calculateNutrients()">
+                                                                                                                                                                                                    <option value="kg">kg</option>
+                                                                                                                                                                                                    <option value="g">gam</option>
+                                                                                                                                                                                                </select>
+                                                                                                                                                                                            </div>
 
-                                                                                                                            <button type="button" onclick="this.parentElement.remove(); calculateNutrients()" class="text-gray-300 hover:text-red-500 px-2 transition">
-                                                                                                                                <i class="fas fa-minus-circle"></i>
-                                                                                                                            </button>
-                                                                                                                        `;
+                                                                                                                                                                                            <button type="button" onclick="this.parentElement.remove(); calculateNutrients()" class="text-gray-300 hover:text-red-500 px-2 transition">
+                                                                                                                                                                                                <i class="fas fa-minus-circle"></i>
+                                                                                                                                                                                            </button>
+                                                                                                                                                                                        `;
             container.appendChild(row);
         }
 
@@ -303,6 +334,8 @@
         function openDishModal() {
             document.getElementById('dishModal').classList.remove('hidden');
             document.getElementById('dishForm').reset();
+            document.getElementById('dish_category').value = "";
+            document.getElementById('dish_servings').value = 10;
             document.getElementById('ingredient-selectors').innerHTML = "";
             document.getElementById('total-calories').innerText = "0";
             document.getElementById('total-cost').innerText = "0";
@@ -336,6 +369,8 @@
 
             const payload = {
                 name: document.getElementById('dish_name').value,
+                category: document.getElementById('dish_category').value,
+                servings: parseInt(document.getElementById('dish_servings').value) || 1,
                 ingredients: ingredients
             };
 
@@ -380,22 +415,35 @@
 
         async function editDish(id) {
             editingDishId = id;
+
             try {
                 const res = await fetch(`/api/dishes/${id}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
                 });
+
                 const dish = await res.json();
 
                 document.getElementById('dishModal').classList.remove('hidden');
-                document.getElementById('dish_name').value = dish.name;
-                document.getElementById('ingredient-selectors').innerHTML = "";
 
+                document.getElementById('dish_name').value = dish.name;
+                document.getElementById('dish_category').value = dish.category || "";
+                document.getElementById('dish_servings').value = dish.servings || 1;
+                document.getElementById('ingredient-selectors').innerHTML = "";
                 dish.ingredients.forEach(ing => {
-                    addIngredientRowWithData(ing.id, ing.pivot.weight);
+                    addIngredientRowWithData(
+                        ing.id,
+                        ing.pivot.weight
+                    );
                 });
 
                 calculateNutrients();
-            } catch (err) { alert("Không thể tải thông tin món ăn!"); }
+
+            } catch (err) {
+                console.error(err);
+                alert("Không thể tải thông tin món ăn!");
+            }
         }
 
         function addIngredientRowWithData(id, weightInGram) {

@@ -51,6 +51,6 @@ class User extends Authenticatable
 
     public function units()
     {
-        return $this->belongsToMany(Unit::class, 'unit_assignments', 'user_id', 'unit_id');
+        return $this->belongsToMany(Unit::class, 'unit_user', 'user_id', 'unit_id');
     }
 }

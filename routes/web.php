@@ -46,5 +46,5 @@ Route::get('/thiet-lap-tieu-chuan', function () {
 });
 
 Route::get('/lap-thuc-don', function () {
-    return view('planning');
+    return view('menu_planner');
 });

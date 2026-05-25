@@ -11,6 +11,7 @@ class Unit extends Model
         'name',
         'address',
         'avg_meals_per_day',
+        'meal_price',
         'status'
     ];
 

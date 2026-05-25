@@ -9,7 +9,7 @@ use App\Models\Unit;
 
 class TargetAudienceController extends Controller
 {
-    // Lấy danh sách nhóm đối tượng của một Đơn vị cụ thể
+    // Lấy danh sách nhóm đối tượng của một Khách hàng cụ thể
     public function index(Request $request, $unitId)
     {
         // Kiểm tra xem nhân viên có quyền quản lý đơn vị này không
@@ -31,14 +31,14 @@ class TargetAudienceController extends Controller
         $data = $request->validate([
             'unit_id' => 'required|exists:units,id',
             'name' => 'required|string|max:255',
-            'allergy_tags' => 'nullable|array',
-            'religion_tags' => 'nullable|array',
+            'allergy_tags' => 'nullable|string',
+            'religion_tags' => 'nullable|string',
             'target_calories' => 'numeric|min:0',
             'target_protein' => 'numeric|min:0',
             'target_fat' => 'numeric|min:0',
             'target_fiber' => 'numeric|min:0',
             'budget_per_serving' => 'numeric|min:0',
-            'required_foods' => 'nullable|array' // Ví dụ: ["Sữa tươi buổi xế"]
+            'required_foods' => 'nullable|string'
         ]);
 
         $audience = TargetAudience::create($data);
@@ -56,15 +56,16 @@ class TargetAudienceController extends Controller
         $audience = TargetAudience::findOrFail($id);
 
         $data = $request->validate([
+            'unit_id' => 'required|integer',
             'name' => 'string|max:255',
-            'allergy_tags' => 'nullable|array',
-            'religion_tags' => 'nullable|array',
+            'allergy_tags' => 'nullable|string',
+            'religion_tags' => 'nullable|string',
             'target_calories' => 'numeric',
             'target_protein' => 'numeric',
             'target_fat' => 'numeric',
             'target_fiber' => 'numeric',
             'budget_per_serving' => 'numeric',
-            'required_foods' => 'nullable|array'
+            'required_foods' => 'nullable|string'
         ]);
 
         $audience->update($data);

@@ -17,19 +17,21 @@ class DishController extends Controller
         $query = Dish::with('ingredients')
             ->where('company_id', $companyId);
 
-        // Tìm kiếm theo tên món
         if (!empty($search)) {
             $query->where('name', 'LIKE', '%' . $search . '%');
         }
 
-        // PHÂN TRANG
         $dishes = $query
             ->orderBy('id', 'desc')
             ->paginate(12);
 
-        // append allergy_tags
+        // append allergy_tags + dữ liệu suất ăn
         $dishes->getCollection()->transform(function ($dish) {
             $dish->allergy_tags = $dish->allergy_tags;
+            $dish->cost_per_serving = $dish->cost_per_serving;
+            $dish->calories_per_serving = $dish->calories_per_serving;
+            $dish->protein_per_serving = $dish->protein_per_serving;
+
             return $dish;
         });
 
@@ -40,6 +42,8 @@ class DishController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'servings' => 'required|integer|min:1',
             'ingredients' => 'required|array|min:1',
             'ingredients.*.id' => 'required|exists:ingredients,id',
             'ingredients.*.weight' => 'required|numeric|min:0',
@@ -49,9 +53,12 @@ class DishController extends Controller
         $companyId = $user->company_id ?? $user->id;
 
         return DB::transaction(function () use ($request, $user, $companyId) {
-            // Tạo món ăn 
+
+            // Tạo món ăn
             $dish = Dish::create([
                 'name' => $request->name,
+                'category' => $request->category,
+                'servings' => $request->servings,
                 'company_id' => $companyId,
                 'created_by' => $user->id,
                 'total_calories' => 0,
@@ -60,10 +67,13 @@ class DishController extends Controller
             ]);
 
             foreach ($request->ingredients as $item) {
-                $dish->ingredients()->attach($item['id'], ['weight' => $item['weight']]);
+                $dish->ingredients()->attach(
+                    $item['id'],
+                    ['weight' => $item['weight']]
+                );
             }
 
-            // Sử dụng hàm 'thông minh' ở Model Dish để tính toán chính xác
+            // Tính toán lại dinh dưỡng
             $dish->recalculateNutrition();
 
             return response()->json([
@@ -77,27 +87,46 @@ class DishController extends Controller
     public function show($id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
-        $dish = Dish::with('ingredients')->where('company_id', $companyId)->findOrFail($id);
+
+        $dish = Dish::with('ingredients')
+            ->where('company_id', $companyId)
+            ->findOrFail($id);
 
         return response()->json($dish);
     }
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'servings' => 'required|integer|min:1',
+            'ingredients' => 'required|array|min:1',
+            'ingredients.*.id' => 'required|exists:ingredients,id',
+            'ingredients.*.weight' => 'required|numeric|min:0',
+        ]);
+
         $dish = Dish::findOrFail($id);
 
         return DB::transaction(function () use ($request, $dish) {
-            // Cập nhật tên món
-            $dish->update(['name' => $request->name]);
 
-            // Làm mới bảng trung gian
+            // Cập nhật món ăn
+            $dish->update([
+                'name' => $request->name,
+                'category' => $request->category,
+                'servings' => $request->servings,
+            ]);
+
             $dish->ingredients()->detach();
 
             foreach ($request->ingredients as $item) {
-                $dish->ingredients()->attach($item['id'], ['weight' => $item['weight']]);
+                $dish->ingredients()->attach(
+                    $item['id'],
+                    ['weight' => $item['weight']]
+                );
             }
 
-            // Tính toán lại toàn bộ chỉ số sau khi sửa
+            // Tính toán lại
             $dish->recalculateNutrition();
 
             return response()->json([
@@ -111,12 +140,16 @@ class DishController extends Controller
     public function destroy($id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
-        $dish = Dish::where('company_id', $companyId)->findOrFail($id);
 
-        // Xóa quan hệ trong bảng trung gian trước khi xóa món
+        $dish = Dish::where('company_id', $companyId)
+            ->findOrFail($id);
+
         $dish->ingredients()->detach();
+
         $dish->delete();
 
-        return response()->json(['message' => 'Xóa món ăn thành công']);
+        return response()->json([
+            'message' => 'Xóa món ăn thành công'
+        ]);
     }
 }

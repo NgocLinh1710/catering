@@ -21,7 +21,6 @@ class UnitController extends Controller
                 $query->where('name', 'like', '%' . $search . '%');
             });
 
-        // Phân trang 10 items
         $units = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return response()->json([
@@ -104,10 +103,9 @@ class UnitController extends Controller
     {
         $user = auth()->user();
 
-        // Lấy danh sách khách hàng thông qua quan hệ n-n đã định nghĩa ở User Model
-        $units = $user->units()->where('status', 'active')->get();
-
-        return response()->json($units);
+        // Lấy danh sách khách hàng thông qua quan hệ n-n 
+        $assignedUnits = $user->units()->where('status', 'active')->get();
+        return response()->json($assignedUnits);
     }
 
     public function destroy($id)

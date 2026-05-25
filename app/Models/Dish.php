@@ -19,10 +19,18 @@ class Dish extends Model
         'lipid',
         'glucid',
         'dish_tags',
-        'estimated_cost'
+        'estimated_cost',
+        'servings'
     ];
 
-    protected $appends = ['allergy_tags'];
+    protected $appends = [
+        'allergy_tags',
+        'cost_per_serving',
+        'calories_per_serving',
+        'protein_per_serving',
+        'fat_per_serving',
+        'glucid_per_serving',
+    ];
     protected $casts = [
         'dish_tags' => 'array',
     ];
@@ -49,6 +57,51 @@ class Dish extends Model
             ->unique()
             ->values()
             ->all();
+    }
+
+    public function getCostPerServingAttribute()
+    {
+        if (($this->servings ?? 1) <= 0) {
+            return 0;
+        }
+
+        return round($this->estimated_cost / $this->servings, 2);
+    }
+
+    public function getCaloriesPerServingAttribute()
+    {
+        if (($this->servings ?? 1) <= 0) {
+            return 0;
+        }
+
+        return round($this->total_calories / $this->servings, 2);
+    }
+
+    public function getProteinPerServingAttribute()
+    {
+        if (($this->servings ?? 1) <= 0) {
+            return 0;
+        }
+
+        return round($this->total_protein / $this->servings, 2);
+    }
+
+    public function getFatPerServingAttribute()
+    {
+        if (($this->servings ?? 1) <= 0) {
+            return 0;
+        }
+
+        return round($this->lipid / $this->servings, 1);
+    }
+
+    public function getGlucidPerServingAttribute()
+    {
+        if (($this->servings ?? 1) <= 0) {
+            return 0;
+        }
+
+        return round($this->glucid / $this->servings, 1);
     }
 
     /**
