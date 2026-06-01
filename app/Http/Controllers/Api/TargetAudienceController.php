@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TargetAudience;
 use App\Models\Unit;
+use App\Models\TargetAudienceRestriction;
+use Illuminate\Support\Facades\DB;
 
 class TargetAudienceController extends Controller
 {
@@ -16,7 +18,9 @@ class TargetAudienceController extends Controller
         $user = auth()->user();
         $unit = $user->units()->findOrFail($unitId);
 
-        $audiences = TargetAudience::where('unit_id', $unitId)->get();
+        $audiences = TargetAudience::with('restrictions')
+            ->where('unit_id', $unitId)
+            ->get();
 
         return response()->json([
             'status' => 'success',
@@ -38,10 +42,26 @@ class TargetAudienceController extends Controller
             'target_fat' => 'numeric|min:0',
             'target_fiber' => 'numeric|min:0',
             'budget_per_serving' => 'numeric|min:0',
-            'required_foods' => 'nullable|string'
+            'required_foods' => 'nullable|string',
+            'restrictions' => 'nullable|array',
+            'restrictions.*.tag' => 'required|string',
+            'restrictions.*.type' => 'required|in:allergy,religion',
+            'restrictions.*.quantity' => 'required|integer|min:1'
         ]);
 
         $audience = TargetAudience::create($data);
+        if (!empty($request->restrictions)) {
+
+            foreach ($request->restrictions as $r) {
+
+                TargetAudienceRestriction::create([
+                    'target_audience_id' => $audience->id,
+                    'tag' => $r['tag'],
+                    'type' => $r['type'],
+                    'quantity' => $r['quantity'],
+                ]);
+            }
+        }
 
         return response()->json([
             'status' => 'success',

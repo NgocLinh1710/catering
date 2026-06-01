@@ -23,10 +23,16 @@ class TargetAudience extends Model
         'allergy_tags' => 'array',
         'religion_tags' => 'array',
         'required_foods' => 'array',
+        'restrictions' => 'array',
     ];
 
     public function unit()
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function restrictions()
+    {
+        return $this->hasMany(TargetAudienceRestriction::class);
     }
 }

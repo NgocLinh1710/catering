@@ -131,9 +131,7 @@ class Dish extends Model
         return round($totalCost, 2);
     }
 
-    /**
-     * TÍNH TOÁN LẠI DINH DƯỠNG TỔNG
-     */
+    // Tính toán lại dinh dưỡng tổng
     public function recalculateNutrition()
     {
         $calories = 0;
@@ -159,5 +157,14 @@ class Dish extends Model
             'lipid' => $lipid,
             'glucid' => $glucid,
         ]);
+    }
+
+    // Quan hệ n-n với bảng daily_menus
+
+    public function dailyMenus()
+    {
+        return $this->belongsToMany(DailyMenu::class, 'daily_menu_dish', 'dish_id', 'daily_menu_id')
+            ->withPivot('quantity', 'meal_type')
+            ->withTimestamps();
     }
 }

@@ -25,8 +25,8 @@ class DishController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(12);
 
-        // append allergy_tags + dữ liệu suất ăn
         $dishes->getCollection()->transform(function ($dish) {
+            $dish->warning_tags = $dish->allergy_tags ?? [];
             $dish->allergy_tags = $dish->allergy_tags;
             $dish->cost_per_serving = $dish->cost_per_serving;
             $dish->calories_per_serving = $dish->calories_per_serving;
@@ -73,7 +73,6 @@ class DishController extends Controller
                 );
             }
 
-            // Tính toán lại dinh dưỡng
             $dish->recalculateNutrition();
 
             return response()->json([
