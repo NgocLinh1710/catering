@@ -177,132 +177,66 @@ class DailyMenuController extends Controller
         }
     }
 
+    /**
+     * MODULE 7: TỰ ĐỘNG TỐI ƯU HÓA THỰC ĐƠN BẰNG QUY HOẠCH TUYẾN TÍNH
+     */
     public function autoGenerateMenu(Request $request)
     {
         $request->validate([
             'target_audience_id' => 'required|exists:target_audiences,id',
-            'allergy_notes' => 'nullable|array'
+            'forbidden_keywords' => 'nullable|array',
+            'all_dishes' => 'required|array'
         ]);
 
+        // Lấy thông tin định mức dinh dưỡng của đối tượng mục tiêu
         $audience = TargetAudience::find($request->target_audience_id);
-        if (!$audience) {
-            return response()->json(['status' => 'error', 'message' => 'Không tìm thấy nhóm đối tượng'], 404);
+
+        $payload = [
+            'target' => [
+                'budget' => (float) ($audience->budget_per_serving ?? 0),
+                'calories' => (float) ($audience->target_calories ?? 0),
+                'protein' => (float) ($audience->target_protein ?? 0),
+                'fat' => (float) ($audience->target_fat ?? 0),
+                'fiber' => (float) ($audience->target_fiber ?? 0),
+            ],
+            'forbidden_keywords' => $request->forbidden_keywords ?? [],
+            'dishes' => $request->all_dishes
+        ];
+
+        // Tạo và ghi dữ liệu ra file tạm để tránh lỗi Broken Pipe trên Windows XAMPP
+        $tempInputFile = storage_path('app/baimat_input_' . time() . '.json');
+        file_put_contents(
+            storage_path('app/debug_payload.json'),
+            json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
+        file_put_contents($tempInputFile, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+
+        $scriptPath = base_path('optimizer.py');
+        $pythonPath = "C:\\Users\\ngocl\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
+
+        $command = "\"{$pythonPath}\" \"{$scriptPath}\" \"{$tempInputFile}\" 2>&1";
+        $output = shell_exec($command);
+
+        if (file_exists($tempInputFile)) {
+            @unlink($tempInputFile);
         }
 
-        $targetBudget = parseFloat($audience->budget_per_serving ?? 0);
-        $targetCalories = parseFloat($audience->target_calories ?? 0);
-
-        $dishesPool = Dish::with('ingredients')->get();
-
-        $processedPool = $dishesPool->map(function ($dish) {
-            $tags = [];
-            if ($dish->ingredients) {
-                foreach ($dish->ingredients as $ing) {
-                    if (!empty($ing->tags) && is_array($ing->tags)) {
-                        foreach ($ing->tags as $t) {
-                            $tags[] = trim(mb_strtolower($t, 'UTF-8'));
-                        }
-                    }
-                }
-            }
-            if (!empty($dish->dish_tags) && is_array($dish->dish_tags)) {
-                foreach ($dish->dish_tags as $t) {
-                    $tags[] = trim(mb_strtolower($t, 'UTF-8'));
-                }
-            }
-            if (!empty($dish->allergy_tags) && is_array($dish->allergy_tags)) {
-                foreach ($dish->allergy_tags as $t) {
-                    $tags[] = trim(mb_strtolower($t, 'UTF-8'));
-                }
-            }
-
-            $servings = (float) ($dish->servings ?? 1);
-            if ($servings <= 0)
-                $servings = 1;
-
-            return [
-                'id' => $dish->id,
-                'name' => $dish->name,
-                'cost_per_serving' => (float) ($dish->estimated_cost ?? 0) / $servings,
-                'calories_per_serving' => (float) ($dish->total_calories ?? 0) / $servings,
-                'tags' => array_unique(array_filter($tags))
-            ];
-        });
-
-        // Phân loại món ăn tag Ăn Chay
-        $vegetarianPool = $processedPool->filter(function ($d) {
-            return !in_array('thịt', $d['tags']) && !in_array('hải sản', $d['tags']);
-        })->values();
-
-        $picker = function ($pool, $tBudget, $tCalories) {
-            if ($pool->isEmpty())
-                return [];
-
-            $shuffled = $pool->shuffle();
-            $selected = [];
-            $currentBudget = 0;
-            $currentCalories = 0;
-
-            foreach ($shuffled as $dish) {
-                if (count($selected) >= 4)
-                    break;
-
-                if ($currentBudget + $dish['cost_per_serving'] <= $tBudget * 1.3) {
-                    $selected[] = [
-                        'id' => $dish['id'],
-                        'name' => $dish['name'],
-                        'quantity' => 1,
-                        'cost_per_serving' => $dish['cost_per_serving'],
-                        'calories_per_serving' => $dish['calories_per_serving']
-                    ];
-                    $currentBudget += $dish['cost_per_serving'];
-                    $currentCalories += $dish['calories_per_serving'];
-                }
-            }
-            return $selected;
-        };
-
-        $suggestedDishes = [];
-
-        // Hàng 1: Suất thường (Normal)
-        $normalDishes = $picker($processedPool, $targetBudget, $targetCalories);
-        foreach ($normalDishes as $d) {
-            $d['meal_type'] = 'normal';
-            $suggestedDishes[] = $d;
+        if (empty($output)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Script Python không phản hồi hoặc không trả về kết quả.'
+            ], 500);
         }
 
-        // Hàng 2: Suất chay (Vegetarian)
-        $vegDishes = $picker($vegetarianPool, $targetBudget, $targetCalories);
-        foreach ($vegDishes as $d) {
-            $d['meal_type'] = 'vegetarian';
-            $suggestedDishes[] = $d;
+        $result = json_decode($output, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi phát sinh từ môi trường Python hoặc thiếu thư viện: ' . $output
+            ], 500);
         }
 
-        // Hàng 3: từng Nhóm dị ứng con 
-        $allergyNotes = $request->allergy_notes ?? [];
-        foreach ($allergyNotes as $index => $group) {
-            $keyword = trim(mb_strtolower($group['keyword'] ?? '', 'UTF-8'));
-
-            $allergySafePool = $processedPool->filter(function ($d) use ($keyword) {
-                if (empty($keyword))
-                    return true;
-                foreach ($d['tags'] as $tag) {
-                    if (str_contains($tag, $keyword) || str_contains($keyword, $tag))
-                        return false;
-                }
-                return true;
-            })->values();
-
-            $allergyDishes = $picker($allergySafePool, $targetBudget, $targetCalories);
-            foreach ($allergyDishes as $d) {
-                $d['meal_type'] = "allergy_nhom_{$index}";
-                $suggestedDishes[] = $d;
-            }
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $suggestedDishes
-        ]);
+        return response()->json($result);
     }
 }

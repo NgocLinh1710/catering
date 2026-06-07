@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post('/ingredients/update-price', [IngredientController::class, 'updatePrice']);
+    Route::get('/ingredients/all', [IngredientController::class, 'all']);
     Route::apiResource('ingredients', IngredientController::class);
 
     // Quản lý món ăn
@@ -47,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Quản lý Thực đơn mỗi ngày
     Route::get('daily-menus/by-date', [DailyMenuController::class, 'getMenuByDate']);
     Route::post('daily-menus', [DailyMenuController::class, 'store']);
+    Route::post('/daily-menus/auto-generate', [DailyMenuController::class, 'autoGenerateMenu']);
 });
 
 // Admin Route

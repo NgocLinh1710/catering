@@ -128,13 +128,23 @@
 
         window.loadData = async function () {
             try {
-                const resIng = await fetch('/api/ingredients', {
-                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                const resIng = await fetch('/api/ingredients/all', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    }
                 });
+
                 const result = await resIng.json();
+
+                console.log("RESULT =", result);
+
                 allIngredients = result.data || [];
 
+                console.log("ALL =", allIngredients);
+
                 loadDishes();
+
             } catch (err) {
                 console.error("Lỗi tải dữ liệu:", err);
             }
@@ -180,35 +190,35 @@
                         : '';
 
                     return `
-                                                            <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
-                                                                <div class="p-4">
-                                                                    <div class="flex justify-between items-start mb-2">
-                                                                        <div>
-                                                                            <h4 class="font-bold text-gray-800 group-hover:text-green-600 transition">${dish.name}</h4>
-                                                                            <div class="mt-1">${categoryHtml}</div> </div>
-                                                                        <div class="flex space-x-2">
-                                                                            <button onclick="editDish(${dish.id})" class="text-gray-300 hover:text-blue-500 transition">
-                                                                                <i class="fas fa-edit text-sm"></i>
-                                                                            </button>
-                                                                            <button onclick="deleteDish(${dish.id})" class="text-gray-300 hover:text-red-500 transition">
-                                                                                <i class="fas fa-trash-alt text-sm"></i>
-                                                                            </button>
+                                                                        <div class="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
+                                                                            <div class="p-4">
+                                                                                <div class="flex justify-between items-start mb-2">
+                                                                                    <div>
+                                                                                        <h4 class="font-bold text-gray-800 group-hover:text-green-600 transition">${dish.name}</h4>
+                                                                                        <div class="mt-1">${categoryHtml}</div> </div>
+                                                                                    <div class="flex space-x-2">
+                                                                                        <button onclick="editDish(${dish.id})" class="text-gray-300 hover:text-blue-500 transition">
+                                                                                            <i class="fas fa-edit text-sm"></i>
+                                                                                        </button>
+                                                                                        <button onclick="deleteDish(${dish.id})" class="text-gray-300 hover:text-red-500 transition">
+                                                                                            <i class="fas fa-trash-alt text-sm"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="flex flex-wrap gap-1 mb-3">${tagHtml}</div>
+                                                                                <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+                                                                                    <div class="flex flex-col">
+                                                                                        <span class="text-gray-400">Năng lượng</span>
+                                                                                        <span class="font-bold text-orange-600">${Math.round(dish.calories_per_serving)} Kcal</span>
+                                                                                    </div>
+                                                                                    <div class="flex flex-col">
+                                                                                        <span class="text-gray-400">Giá vốn/suất</span>
+                                                                                        <span class="font-bold text-blue-600">${Math.round(dish.cost_per_serving).toLocaleString()}đ</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div class="flex flex-wrap gap-1 mb-3">${tagHtml}</div>
-                                                                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
-                                                                        <div class="flex flex-col">
-                                                                            <span class="text-gray-400">Năng lượng</span>
-                                                                            <span class="font-bold text-orange-600">${Math.round(dish.calories_per_serving)} Kcal</span>
-                                                                        </div>
-                                                                        <div class="flex flex-col">
-                                                                            <span class="text-gray-400">Giá vốn/suất</span>
-                                                                            <span class="font-bold text-blue-600">${Math.round(dish.cost_per_serving).toLocaleString()}đ</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        `;
+                                                                    `;
                 }).join('');
                 renderPagination(response, search);
             } catch (err) {
@@ -227,57 +237,57 @@
 
             // <<
             html += `
-                                                                                <button
-                                                                                    onclick="loadDishes('${search}', 1)"
-                                                                                    ${response.current_page === 1 ? 'disabled' : ''}
-                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                                                                                    &laquo;
-                                                                                </button>
-                                                                                `;
+                                                                                            <button
+                                                                                                onclick="loadDishes('${search}', 1)"
+                                                                                                ${response.current_page === 1 ? 'disabled' : ''}
+                                                                                                class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                                &laquo;
+                                                                                            </button>
+                                                                                            `;
 
             // <
             html += `
-                                                                                <button
-                                                                                    onclick="loadDishes('${search}', ${response.current_page - 1})"
-                                                                                    ${response.current_page === 1 ? 'disabled' : ''}
-                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                                                                                    &lt;
-                                                                                </button>
-                                                                                `;
+                                                                                            <button
+                                                                                                onclick="loadDishes('${search}', ${response.current_page - 1})"
+                                                                                                ${response.current_page === 1 ? 'disabled' : ''}
+                                                                                                class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                                &lt;
+                                                                                            </button>
+                                                                                            `;
 
             // số trang
             for (let i = 1; i <= response.last_page; i++) {
                 html += `
-                                                                                    <button
-                                                                                        onclick="loadDishes('${search}', ${i})"
-                                                                                        class="px-3 py-1 rounded border ${i === response.current_page
+                                                                                                <button
+                                                                                                    onclick="loadDishes('${search}', ${i})"
+                                                                                                    class="px-3 py-1 rounded border ${i === response.current_page
                         ? 'bg-green-500 text-white'
                         : 'bg-white hover:bg-gray-100'
                     }">
-                                                                                        ${i}
-                                                                                    </button>
-                                                                                    `;
+                                                                                                    ${i}
+                                                                                                </button>
+                                                                                                `;
             }
 
             // >
             html += `
-                                                                                <button
-                                                                                    onclick="loadDishes('${search}', ${response.current_page + 1})"
-                                                                                    ${response.current_page === response.last_page ? 'disabled' : ''}
-                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                                                                                    &gt;
-                                                                                </button>
-                                                                                `;
+                                                                                            <button
+                                                                                                onclick="loadDishes('${search}', ${response.current_page + 1})"
+                                                                                                ${response.current_page === response.last_page ? 'disabled' : ''}
+                                                                                                class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                                &gt;
+                                                                                            </button>
+                                                                                            `;
 
             // >>
             html += `
-                                                                                <button
-                                                                                    onclick="loadDishes('${search}', ${response.last_page})"
-                                                                                    ${response.current_page === response.last_page ? 'disabled' : ''}
-                                                                                    class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
-                                                                                    &raquo;
-                                                                                </button>
-                                                                                `;
+                                                                                            <button
+                                                                                                onclick="loadDishes('${search}', ${response.last_page})"
+                                                                                                ${response.current_page === response.last_page ? 'disabled' : ''}
+                                                                                                class="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50">
+                                                                                                &raquo;
+                                                                                            </button>
+                                                                                            `;
 
             pagination.innerHTML = html;
         }
@@ -287,23 +297,23 @@
             const row = document.createElement('div');
             row.className = "flex space-x-2 items-center ing-row bg-white p-2 rounded-lg border border-gray-100 shadow-sm";
             row.innerHTML = `
-                                                                                                                                                                                            <select class="flex-1 border-none bg-transparent p-1 rounded text-sm ing-select focus:ring-0" onchange="calculateNutrients()">
-                                                                                                                                                                                                <option value="">-- Chọn thực phẩm --</option>
-                                                                                                                                                                                                ${allIngredients.map(i => `<option value="${i.id}" data-calo="${i.calories}" data-price="${i.price_per_kg}">${i.name}</option>`).join('')}
-                                                                                                                                                                                            </select>
+                                                                                                                                                                                                        <select class="flex-1 border-none bg-transparent p-1 rounded text-sm ing-select focus:ring-0" onchange="calculateNutrients()">
+                                                                                                                                                                                                            <option value="">-- Chọn thực phẩm --</option>
+                                                                                                                                                                                                            ${allIngredients.map(i => `<option value="${i.id}" data-calo="${i.calories}" data-price="${i.price_per_kg}">${i.name}</option>`).join('')}
+                                                                                                                                                                                                        </select>
 
-                                                                                                                                                                                            <div class="flex items-center bg-gray-100 px-2 rounded-md">
-                                                                                                                                                                                                <input type="number" step="any" placeholder="0" class="w-16 bg-transparent border-none p-1 text-sm ing-weight focus:ring-0 text-right" oninput="calculateNutrients()">
-                                                                                                                                                                                                <select class="text-[10px] bg-transparent border-none font-bold ml-1 focus:ring-0 ing-unit" onchange="calculateNutrients()">
-                                                                                                                                                                                                    <option value="kg">kg</option>
-                                                                                                                                                                                                    <option value="g">gam</option>
-                                                                                                                                                                                                </select>
-                                                                                                                                                                                            </div>
+                                                                                                                                                                                                        <div class="flex items-center bg-gray-100 px-2 rounded-md">
+                                                                                                                                                                                                            <input type="number" step="any" placeholder="0" class="w-16 bg-transparent border-none p-1 text-sm ing-weight focus:ring-0 text-right" oninput="calculateNutrients()">
+                                                                                                                                                                                                            <select class="text-[10px] bg-transparent border-none font-bold ml-1 focus:ring-0 ing-unit" onchange="calculateNutrients()">
+                                                                                                                                                                                                                <option value="kg">kg</option>
+                                                                                                                                                                                                                <option value="g">gam</option>
+                                                                                                                                                                                                            </select>
+                                                                                                                                                                                                        </div>
 
-                                                                                                                                                                                            <button type="button" onclick="this.parentElement.remove(); calculateNutrients()" class="text-gray-300 hover:text-red-500 px-2 transition">
-                                                                                                                                                                                                <i class="fas fa-minus-circle"></i>
-                                                                                                                                                                                            </button>
-                                                                                                                                                                                        `;
+                                                                                                                                                                                                        <button type="button" onclick="this.parentElement.remove(); calculateNutrients()" class="text-gray-300 hover:text-red-500 px-2 transition">
+                                                                                                                                                                                                            <i class="fas fa-minus-circle"></i>
+                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                    `;
             container.appendChild(row);
         }
 

@@ -129,6 +129,20 @@ class IngredientController extends Controller
         });
     }
 
+    public function all()
+    {
+        $companyId = auth()->user()->company_id ?? auth()->user()->id;
+
+        $ingredients = Ingredient::where('company_id', $companyId)
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $ingredients
+        ]);
+    }
+
     public function destroy($id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;

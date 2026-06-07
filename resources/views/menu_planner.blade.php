@@ -5,14 +5,13 @@
 @section('content')
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {{-- SELECTOR ĐƠN VỊ & ĐỐI TƯỢNG --}}
         <div id="selector-wrapper" class="hidden mb-6 bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-black text-gray-800 mb-5">
-                <i class="fas fa-layer-group text-green-500 mr-2"></i> Chọn Đơn vị & Nhóm đối tượng
+                <i class="fas fa-layer-group text-green-500 mr-2"></i> Chọn Khách hàng & Nhóm đối tượng
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-xs font-black text-gray-500 uppercase mb-2">1. Chọn khách hàng / đơn vị</label>
+                    <label class="block text-xs font-black text-gray-500 uppercase mb-2">1. Chọn khách hàng</label>
                     <select id="select-unit" onchange="onUnitSelectorChange()"
                         class="w-full p-3 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-400">
                         <option value="">-- Chọn khách hàng --</option>
@@ -22,16 +21,14 @@
                     <label class="block text-xs font-black text-gray-500 uppercase mb-2">2. Chọn nhóm đối tượng</label>
                     <select id="select-audience" onchange="onAudienceSelectorChange()" disabled
                         class="w-full p-3 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-400">
-                        <option value="">-- Chọn đơn vị trước --</option>
+                        <option value="">-- Chọn khách hàng trước --</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        {{-- MAIN PLANNER CONTENT --}}
         <div id="planner-main-content" class="hidden">
 
-            {{-- THANH TIÊU ĐỀ & NGÀY ÁP DỤNG --}}
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 mb-6">
                 <div class="flex flex-wrap gap-4 justify-between items-center">
                     <div class="flex items-center gap-4">
@@ -60,13 +57,10 @@
                 </div>
             </div>
 
-            {{-- NỘI DUNG CHÍNH CHIA 2 CỘT --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {{-- CỘT TRÁI (4/12): NHẬP SỐ SUẤT & THIẾT LẬP NHÓM DỊ ỨNG --}}
                 <div class="lg:col-span-4 space-y-6">
 
-                    {{-- ĐIỀU PHỐI SỐ LƯỢNG SUẤT ĂN HÔM NAY --}}
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 space-y-4">
                         <h3 class="font-black text-gray-800 mb-2 flex items-center">
                             <i class="fas fa-users text-blue-500 mr-2"></i> Số lượng suất
@@ -86,14 +80,12 @@
                             </div>
                         </div>
 
-                        {{-- TỔNG SUẤT DỊ ỨNG KHÓA ĐỌC --}}
                         <div>
                             <label class="block text-xs font-bold text-red-700 mb-1">Tổng suất dị ứng</label>
                             <input type="number" id="allergy-servings" value="0" readonly
                                 class="w-full rounded-xl border border-red-200 px-3 py-2.5 font-black text-red-800 bg-red-50/50 outline-none cursor-not-allowed">
                         </div>
 
-                        {{-- KHU VỰC QUẢN LÝ CÁC NHÓM DỊ ỨNG CON TRONG NGÀY --}}
                         <div class="border border-red-100 bg-red-50/20 rounded-2xl p-3 space-y-3">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black text-red-800 uppercase">Cấu hình nhóm dị ứng</span>
@@ -103,12 +95,10 @@
                                 </button>
                             </div>
                             <div id="allergy-groups-container" class="space-y-2">
-                                {{-- Các dòng cấu hình nhóm dị ứng được sinh ra ở đây --}}
                             </div>
                         </div>
                     </div>
 
-                    {{-- TỔNG HỢP GIÁM SÁT DỰA TRÊN ĐỊNH MỨC --}}
                     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
                         <h3 class="font-black text-gray-800 mb-4 flex items-center">
                             <i class="fas fa-chart-pie text-amber-500 mr-2"></i> Giám sát tiêu chuẩn thực đơn
@@ -116,7 +106,7 @@
                         <div class="space-y-4">
                             <div>
                                 <div class="flex justify-between mb-1 text-xs font-bold">
-                                    <span class="text-gray-500">Chi phí TB / suất thực tế</span>
+                                    <span class="text-gray-500">Chi phí / suất thực tế</span>
                                     <span class="font-black"><span id="calc-current-cost">0</span> / <span
                                             id="target-budget-per">0</span>đ</span>
                                 </div>
@@ -127,7 +117,7 @@
                             </div>
                             <div>
                                 <div class="flex justify-between mb-1 text-xs font-bold">
-                                    <span class="text-gray-500">Calories TB / suất thực tế</span>
+                                    <span class="text-gray-500">Calories / suất thực tế</span>
                                     <span class="font-black"><span id="calc-current-calories">0</span> / <span
                                             id="target-calories-per">0</span> kcal</span>
                                 </div>
@@ -138,33 +128,33 @@
                                 </div>
                             </div>
                             <div class="bg-gray-50 rounded-2xl p-3 text-xs space-y-2 font-medium">
-                                <div class="flex justify-between"><span>Đạm (Protein) trung bình:</span><span
-                                        class="font-bold"><span id="calc-protein">0g</span> / <span
-                                            id="target-protein">0g</span></span></div>
-                                <div class="flex justify-between"><span>Béo (Fat) trung bình:</span><span
-                                        class="font-bold"><span id="calc-fat">0g</span> / <span
-                                            id="target-fat">0g</span></span></div>
-                                <div class="flex justify-between"><span>Xơ (Glucid) trung bình:</span><span
-                                        class="font-bold"><span id="calc-fiber">0g</span> / <span
-                                            id="target-fiber">0g</span></span></div>
+                                <div class="flex justify-between"><span>Đạm (Protein):</span><span class="font-bold"><span
+                                            id="calc-protein">0g</span> / <span id="target-protein">0g</span></span></div>
+                                <div class="flex justify-between"><span>Béo (Fat):</span><span class="font-bold"><span
+                                            id="calc-fat">0g</span> / <span id="target-fat">0g</span></span></div>
+                                <div class="flex justify-between"><span>Xơ (Glucid):</span><span class="font-bold"><span
+                                            id="calc-fiber">0g</span> / <span id="target-fiber">0g</span></span></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- CỘT PHẢI (8/12): HỆ THỐNG TAB VÀ THÊM MÓN --}}
                 <div class="lg:col-span-8 bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex flex-col">
-
-                    {{-- THANH ĐIỀU HƯỚNG TABS ĐỘNG --}}
                     <div class="flex flex-wrap border-b border-gray-100 mb-5 gap-1" id="meal-tabs-wrapper">
-                        {{-- Hệ thống Tab tự sinh từ JS --}}
                     </div>
 
-                    {{-- KHU VỰC THÊM MÓN CHO TAB HIỆN TẠI --}}
                     <div class="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 mb-6">
-                        <div class="text-xs font-black uppercase text-gray-400 mb-2">
-                            Thêm món vào: <span id="txt-current-tab-label" class="text-green-600">Suất bình thường</span>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-xs font-black uppercase text-gray-400 mb-2">
+                                Thêm món vào: <span id="txt-current-tab-label" class="text-green-600">Suất bình
+                                    thường</span>
+                            </div>
+                            <button type="button" onclick="triggerAutoOptimizeMenu()"
+                                class="text-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1">
+                                <i class="fas fa-bolt animate-bounce"></i>Tự động tối ưu
+                            </button>
                         </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                             <div class="md:col-span-8">
                                 <select id="select-dish-pool"
@@ -183,7 +173,6 @@
                         </div>
                     </div>
 
-                    {{-- BẢNG HIỂN THỊ MÓN ĂN THEO TAB --}}
                     <div class="border border-gray-100 rounded-2xl overflow-hidden flex-1">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
@@ -298,23 +287,23 @@
             container.innerHTML = allergyGroups.map((g, i) => {
                 totalAllergy += (parseInt(g.servings) || 0);
                 return `
-                                                    <div class="space-y-1 bg-white p-2 rounded-xl border border-red-100 shadow-sm relative">
-                                                        <input type="text" placeholder="Tên nhóm (VD: Khách dị ứng tôm)" value="${g.name}" 
-                                                            oninput="updateAllergyGroupValue(${i}, 'name', this.value)"
-                                                            class="w-full text-xs p-1.5 rounded border font-bold text-gray-700 outline-none">
-                                                        <div class="grid grid-cols-2 gap-2">
-                                                            <input type="number" placeholder="Số suất" value="${g.servings || ''}" 
-                                                                oninput="updateAllergyGroupValue(${i}, 'servings', this.value)"
-                                                                class="w-full text-xs p-1.5 rounded border text-center font-bold outline-none">
-                                                            <input type="text" placeholder="Từ khóa (VD: tôm)" value="${g.keyword}" 
-                                                                oninput="updateAllergyGroupValue(${i}, 'keyword', this.value)"
-                                                                class="w-full text-xs p-1.5 rounded border text-red-600 bg-red-50/50 font-black outline-none">
-                                                        </div>
-                                                        <button type="button" onclick="removeAllergyGroup(${i})" class="absolute top-1 right-2 text-red-400 hover:text-red-600 text-[10px]">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                `;
+                                                                                                                    <div class="space-y-1 bg-white p-2 rounded-xl border border-red-100 shadow-sm relative">
+                                                                                                                        <input type="text" placeholder="Tên nhóm (VD: Khách dị ứng tôm)" value="${g.name}" 
+                                                                                                                            oninput="updateAllergyGroupValue(${i}, 'name', this.value)"
+                                                                                                                            class="w-full text-xs p-1.5 rounded border font-bold text-gray-700 outline-none">
+                                                                                                                        <div class="grid grid-cols-2 gap-2">
+                                                                                                                            <input type="number" placeholder="Số suất" value="${g.servings || ''}" 
+                                                                                                                                oninput="updateAllergyGroupValue(${i}, 'servings', this.value)"
+                                                                                                                                class="w-full text-xs p-1.5 rounded border text-center font-bold outline-none">
+                                                                                                                            <input type="text" placeholder="Từ khóa (VD: tôm)" value="${g.keyword}" 
+                                                                                                                                oninput="updateAllergyGroupValue(${i}, 'keyword', this.value)"
+                                                                                                                                class="w-full text-xs p-1.5 rounded border text-red-600 bg-red-50/50 font-black outline-none">
+                                                                                                                        </div>
+                                                                                                                        <button type="button" onclick="removeAllergyGroup(${i})" class="absolute top-1 right-2 text-red-400 hover:text-red-600 text-[10px]">
+                                                                                                                            <i class="fas fa-times"></i>
+                                                                                                                        </button>
+                                                                                                                    </div>
+                                                                                                                `;
             }).join('');
 
             document.getElementById('allergy-servings').value = totalAllergy;
@@ -327,22 +316,22 @@
             let countVeg = chosenDishes.filter(d => d.meal_type === 'vegetarian').length;
 
             let tabsHtml = `
-                                                <button onclick="switchMealTab('normal')" id="tab-btn-normal" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                    🟢 Suất Thường <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countNormal}</span>
-                                                </button>
-                                                <button onclick="switchMealTab('vegetarian')" id="tab-btn-vegetarian" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                    🟡 Suất Chay <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countVeg}</span>
-                                                </button>
-                                            `;
+                                                                                                                <button onclick="switchMealTab('normal')" id="tab-btn-normal" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                    🟢 Suất Thường <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countNormal}</span>
+                                                                                                                </button>
+                                                                                                                <button onclick="switchMealTab('vegetarian')" id="tab-btn-vegetarian" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                    🟡 Suất Chay <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countVeg}</span>
+                                                                                                                </button>
+                                                                                                            `;
 
             allergyGroups.forEach((g, i) => {
                 let countGroup = chosenDishes.filter(d => d.meal_type === `allergy_nhom_${i}`).length;
                 tabsHtml += `
-                                                    <button onclick="switchMealTab('allergy_nhom_${i}')" id="tab-btn-allergy_nhom_${i}" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                        🔴 ${g.name || 'Nhóm dị ứng ' + (i + 1)} (${g.servings || 0}s) 
-                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">${countGroup}</span>
-                                                    </button>
-                                                `;
+                                                                                                                    <button onclick="switchMealTab('allergy_nhom_${i}')" id="tab-btn-allergy_nhom_${i}" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                        🔴 ${g.name || 'Nhóm dị ứng ' + (i + 1)} (${g.servings || 0}s) 
+                                                                                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">${countGroup}</span>
+                                                                                                                    </button>
+                                                                                                                `;
             });
 
             wrapper.innerHTML = tabsHtml;
@@ -396,10 +385,13 @@
                     if (d.dish_tags && Array.isArray(d.dish_tags)) dishTagsText += d.dish_tags.join(' ').toLowerCase() + ' ';
                     if (d.allergy_tags && Array.isArray(d.allergy_tags)) dishTagsText += d.allergy_tags.join(' ').toLowerCase() + ' ';
 
-                    // Chặn tag suất chay: Chặn tuyệt đối món chứa Thịt hoặc Hải sản
+                    // Chặn tag suất chay: Chặn tuyệt đối món chứa Thịt, Hải sản, Cá, Thân mềm, Giáp xác
                     if (currentActiveTab === 'vegetarian') {
-                        if (dishTagsText.includes('thịt')) { isBlocked = true; blockedReason = 'MÓN MẶN / THỊT'; }
-                        else if (dishTagsText.includes('hải sản')) { isBlocked = true; blockedReason = 'MÓN MẶN / HẢI SẢN'; }
+                        if (dishTagsText.includes('thịt')) { isBlocked = true; blockedReason = 'MÓN MẶN / Thịt'; }
+                        else if (dishTagsText.includes('hải sản')) { isBlocked = true; blockedReason = 'MÓN MẶN / Hải sản'; }
+                        else if (dishTagsText.includes('cá')) { isBlocked = true; blockedReason = 'MÓN MẶN / Cá'; }
+                        else if (dishTagsText.includes('thân mềm')) { isBlocked = true; blockedReason = 'MÓN MẶN / Thân mềm'; }
+                        else if (dishTagsText.includes('giáp xác')) { isBlocked = true; blockedReason = 'MÓN MẶN / Giáp xác'; }
                     }
 
                     // Chặn tag dị ứng
@@ -424,8 +416,8 @@
 
                     if (isBlocked) {
                         return `<option value="${d.id}" disabled style="color: #dc2626; background-color: #fef2f2; font-weight: bold;">
-                                ⚠️ [${blockedReason}] ${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)
-                            </option>`;
+                                                                                                ⚠️ [${blockedReason}] ${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)
+                                                                                            </option>`;
                     }
 
                     return `<option value="${d.id}">${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)</option>`;
@@ -482,7 +474,7 @@
             const audienceSelect = document.getElementById('select-audience');
             if (!unitId) {
                 audienceSelect.disabled = true;
-                audienceSelect.innerHTML = '<option value="">-- Chọn đơn vị trước --</option>';
+                audienceSelect.innerHTML = '<option value="">-- Chọn khách hàng trước --</option>';
                 return;
             }
             try {
@@ -526,7 +518,7 @@
                 };
 
                 document.getElementById('planner-main-content').classList.remove('hidden');
-                document.getElementById('txt-display-unit-name').innerText = audience.unit?.name || 'Đơn vị';
+                document.getElementById('txt-display-unit-name').innerText = audience.unit?.name || 'Khách hàng';
                 document.getElementById('txt-display-audience-name').innerText = audience.name;
 
                 document.getElementById('target-budget-per').innerText = targetSpecs.budget.toLocaleString();
@@ -552,7 +544,6 @@
                 const json = await res.json();
 
                 if (json.status === 'success' && json.data) {
-                    // Phục hồi lại mảng cấu trúc JSON các nhóm dị ứng từ DB lên giao diện
                     allergyGroups = Array.isArray(json.data.allergy_notes) ? json.data.allergy_notes : [];
 
                     chosenDishes = (json.data.dishes || []).map(d => {
@@ -628,24 +619,24 @@
             }
 
             tbody.innerHTML = filteredDishes.map(d => `
-                                                <tr class="border-t hover:bg-gray-50 transition">
-                                                    <td class="p-4">
-                                                        <div class="font-bold text-gray-800">${d.name}</div>
-                                                    </td>
-                                                    <td class="p-4 text-center">
-                                                        <input type="number" min="1" value="${d.quantity || 1}"
-                                                            onchange="updateDishQuantity(${d.id}, this.value)"
-                                                            class="w-20 text-center border border-gray-200 rounded-xl px-2 py-1">
-                                                    </td>
-                                                    <td class="p-4 text-center">${(navigator_calories(d) * Number(d.quantity || 1)).toFixed(1)}</td>
-                                                    <td class="p-4 text-right font-black">${Math.round((d.cost_per_serving || 0) * (d.quantity || 1)).toLocaleString()}đ</td>
-                                                    <td class="p-4 text-center">
-                                                        <button onclick="removeDish(${d.id})" class="text-red-500 hover:text-red-700 transition">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            `).join('');
+                                                                                                                <tr class="border-t hover:bg-gray-50 transition">
+                                                                                                                    <td class="p-4">
+                                                                                                                        <div class="font-bold text-gray-800">${d.name}</div>
+                                                                                                                    </td>
+                                                                                                                    <td class="p-4 text-center">
+                                                                                                                        <input type="number" min="1" value="${d.quantity || 1}"
+                                                                                                                            onchange="updateDishQuantity(${d.id}, this.value)"
+                                                                                                                            class="w-20 text-center border border-gray-200 rounded-xl px-2 py-1">
+                                                                                                                    </td>
+                                                                                                                    <td class="p-4 text-center">${(navigator_calories(d) * Number(d.quantity || 1)).toFixed(1)}</td>
+                                                                                                                    <td class="p-4 text-right font-black">${Math.round((d.cost_per_serving || 0) * (d.quantity || 1)).toLocaleString()}đ</td>
+                                                                                                                    <td class="p-4 text-center">
+                                                                                                                        <button onclick="removeDish(${d.id})" class="text-red-500 hover:text-red-700 transition">
+                                                                                                                            <i class="fas fa-trash-alt"></i>
+                                                                                                                        </button>
+                                                                                                                    </td>
+                                                                                                                </tr>
+                                                                                                            `).join('');
         }
 
         function navigator_calories(d) {
@@ -692,7 +683,7 @@
 
         async function saveDailyMenu() {
             if (!selectedUnitId || !selectedAudienceId) {
-                alert("Vui lòng chọn đơn vị!"); return;
+                alert("Vui lòng chọn khách hàng!"); return;
             }
 
             const normalServings = parseInt(document.getElementById('normal-servings').value) || 0;
@@ -743,6 +734,80 @@
             } catch (e) {
                 console.error(e);
                 alert("Lỗi hệ thống kết nối Server!");
+            }
+        }
+
+        // Tối ưu Thực đơn
+        async function triggerAutoOptimizeMenu() {
+            if (!selectedAudienceId) { alert("Vui lòng cấu hình Khách hàng và Đối tượng trước!"); return; }
+
+            // Xác định mảng từ khóa cấm dựa trên Tab hiện tại đang đứng để gửi sang Python lọc
+            let forbiddenKeywords = [];
+            if (currentActiveTab === 'vegetarian') {
+                forbiddenKeywords = ['thịt', 'hải sản'];
+            } else if (currentActiveTab.startsWith('allergy_nhom_')) {
+                let idx = parseInt(currentActiveTab.replace('allergy_nhom_', ''));
+                let rawKeyword = allergyGroups[idx]?.keyword?.trim()?.toLowerCase();
+                if (rawKeyword) {
+                    forbiddenKeywords = rawKeyword.split(',').map(k => k.trim()).filter(k => k !== '');
+                }
+            }
+
+            if (confirm(`Hệ thống AI sẽ tự động quét toàn bộ kho ${allDishesPool.length} món ăn để thiết lập thực đơn nháp tối ưu chi phí thấp nhất và đạt chuẩn chỉ số dinh dưỡng cho riêng suất này. Bạn có muốn tiếp tục?`)) {
+
+                try {
+                    // Hiển thị trạng thái chờ 
+                    document.getElementById('selected-dish-tbody').innerHTML = `
+                                                                                <tr><td colspan="5" class="p-10 text-center text-indigo-600 font-bold">
+                                                                                    <i class="fas fa-spinner fa-spin mr-2"></i> Đang tính toán...
+                                                                                </td></tr>`;
+
+                    const res = await fetch('/api/daily-menus/auto-generate', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            target_audience_id: Number(selectedAudienceId),
+                            forbidden_keywords: forbiddenKeywords,
+                            all_dishes: allDishesPool // Gửi tất cả món ăn có sẵn cho Python tính toán
+                        })
+                    });
+
+                    const json = await res.json();
+
+                    if (json.status === 'success') {
+                        // Xóa bỏ các món cũ thuộc tab này trong danh sách nhớ tạm thời để nạp bản nháp mới
+                        chosenDishes = chosenDishes.filter(d => d.meal_type !== currentActiveTab);
+
+                        // Đổ kết quả tối ưu của Python vào mảng quản lý giao diện
+                        json.dishes.forEach(item => {
+                            const originDish = allDishesPool.find(x => x.id == item.id);
+                            if (originDish) {
+                                chosenDishes.push({
+                                    ...originDish,
+                                    quantity: item.quantity,
+                                    meal_type: currentActiveTab
+                                });
+                            }
+                        });
+
+                        renderSelectedDishesTable();
+                        renderTabsWrapperOnly();
+                        reCalculateNutrition();
+                        alert("Tìm thấy thực đơn tối ưu thành công! Mời bạn kiểm tra bản nháp trên bảng.");
+                    } else {
+                        alert(json.message || "Không tìm thấy phương án thực đơn tối ưu.");
+                        renderSelectedDishesTable();
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                    alert("Lỗi kết nối bộ xử lý toán học Python.");
+                    renderSelectedDishesTable();
+                }
             }
         }
     </script>
