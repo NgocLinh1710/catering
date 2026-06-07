@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Quản lý món ăn
     Route::apiResource('dishes', DishController::class);
     Route::get('quan-ly-mon-an', [DishController::class, 'index']);
+    Route::get('/quan-ly-mon-an/all', [DishController::class, 'all']);
 
     Route::apiResource('employees', EmployeeController::class);
     Route::patch('employees/{id}/toggle-status', [EmployeeController::class, 'toggleStatus']);

@@ -47,7 +47,7 @@ class DailyMenuController extends Controller
     }
 
     /**
-     * Lưu / cập nhật thực đơn tách biệt suất ăn (CẤU TRÚC JSON PHÂN NHÓM DỊ ỨNG)
+     * Lưu / cập nhật thực đơn tách biệt suất ăn 
      */
     public function store(Request $request)
     {
@@ -177,9 +177,6 @@ class DailyMenuController extends Controller
         }
     }
 
-    /**
-     * MODULE 7: TỰ ĐỘNG TỐI ƯU HÓA THỰC ĐƠN BẰNG QUY HOẠCH TUYẾN TÍNH
-     */
     public function autoGenerateMenu(Request $request)
     {
         $request->validate([
@@ -238,5 +235,32 @@ class DailyMenuController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Hiển thị thực đơn công khai cho khách hàng xem khi quét mã QR
+     */
+    public function showPublicMenu(Request $request)
+    {
+        $date = $request->query('date');
+        $targetAudienceId = $request->query('target_audience_id');
+
+        if (!$date || !$targetAudienceId) {
+            return "<h3>Thiếu tham số dữ liệu thực đơn!</h3>";
+        }
+
+        // Lấy thực đơn kèm các món ăn
+        $menu = DailyMenu::where('target_audience_id', $targetAudienceId)
+            ->where('date', $date)
+            ->with('dishes')
+            ->first();
+
+        if (!$menu) {
+            return "<h3>Thực đơn ngày {$date} hiện chưa được chuẩn bị. Vui lòng quay lại sau!</h3>";
+        }
+
+        $audience = TargetAudience::find($targetAudienceId);
+
+        return view('public_menu_view', compact('menu', 'audience', 'date'));
     }
 }

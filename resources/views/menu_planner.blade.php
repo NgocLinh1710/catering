@@ -197,6 +197,32 @@
             </div>
         </div>
     </div>
+
+
+    <div id="qr-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border border-gray-100">
+            <h3 class="text-lg font-black text-gray-800 mb-2">
+                <i class="fas fa-qrcode text-green-500 mr-1"></i> Mã QR Thực Đơn Hôm Nay
+            </h3>
+            <p class="text-xs text-gray-400 mb-4">Quét mã dưới đây để xem thực đơn trên thiết bị di động</p>
+
+            <div
+                class="flex justify-center p-3 bg-gray-50 rounded-2xl inline-block mx-auto border border-gray-200 shadow-inner">
+                <img id="qr-image" src="" alt="Mã QR Thực đơn" class="w-48 h-48">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-5">
+                <button onclick="window.open(document.getElementById('qr-image').src, '_blank')"
+                    class="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition">
+                    <i class="fas fa-download mr-1"></i> Tải ảnh QR
+                </button>
+                <button onclick="document.getElementById('qr-modal').classList.add('hidden')"
+                    class="p-3 bg-green-500 hover:bg-green-600 text-white font-bold text-xs rounded-xl transition shadow-md shadow-green-200">
+                    Đóng lại
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -213,6 +239,33 @@
         let targetSpecs = { budget: 0, calories: 0, protein: 0, fat: 0, fiber: 0 };
 
         document.addEventListener('DOMContentLoaded', async () => {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                            .select2-results__options{
+                                max-height:250px !important;
+                                overflow-y:auto !important;
+                            }
+
+                            .select2-container{
+                                width:100% !important;
+                            }
+
+                            .select2-container--default .select2-selection--single{
+                                height:42px !important;
+                                border:1px solid #e5e7eb !important;
+                                border-radius:12px !important;
+                            }
+
+                            .select2-selection__rendered{
+                                line-height:42px !important;
+                            }
+
+                            .select2-selection__arrow{
+                                height:42px !important;
+                            }
+                        `;
+            document.head.appendChild(style);
+
             const token = localStorage.getItem('access_token');
             if (!token) {
                 alert("Phiên đăng nhập hết hạn!");
@@ -287,23 +340,23 @@
             container.innerHTML = allergyGroups.map((g, i) => {
                 totalAllergy += (parseInt(g.servings) || 0);
                 return `
-                                                                                                                    <div class="space-y-1 bg-white p-2 rounded-xl border border-red-100 shadow-sm relative">
-                                                                                                                        <input type="text" placeholder="Tên nhóm (VD: Khách dị ứng tôm)" value="${g.name}" 
-                                                                                                                            oninput="updateAllergyGroupValue(${i}, 'name', this.value)"
-                                                                                                                            class="w-full text-xs p-1.5 rounded border font-bold text-gray-700 outline-none">
-                                                                                                                        <div class="grid grid-cols-2 gap-2">
-                                                                                                                            <input type="number" placeholder="Số suất" value="${g.servings || ''}" 
-                                                                                                                                oninput="updateAllergyGroupValue(${i}, 'servings', this.value)"
-                                                                                                                                class="w-full text-xs p-1.5 rounded border text-center font-bold outline-none">
-                                                                                                                            <input type="text" placeholder="Từ khóa (VD: tôm)" value="${g.keyword}" 
-                                                                                                                                oninput="updateAllergyGroupValue(${i}, 'keyword', this.value)"
-                                                                                                                                class="w-full text-xs p-1.5 rounded border text-red-600 bg-red-50/50 font-black outline-none">
-                                                                                                                        </div>
-                                                                                                                        <button type="button" onclick="removeAllergyGroup(${i})" class="absolute top-1 right-2 text-red-400 hover:text-red-600 text-[10px]">
-                                                                                                                            <i class="fas fa-times"></i>
-                                                                                                                        </button>
-                                                                                                                    </div>
-                                                                                                                `;
+                                                                                                                                                                            <div class="space-y-1 bg-white p-2 rounded-xl border border-red-100 shadow-sm relative">
+                                                                                                                                                                                <input type="text" placeholder="Tên nhóm (VD: Khách dị ứng tôm)" value="${g.name}" 
+                                                                                                                                                                                    oninput="updateAllergyGroupValue(${i}, 'name', this.value)"
+                                                                                                                                                                                    class="w-full text-xs p-1.5 rounded border font-bold text-gray-700 outline-none">
+                                                                                                                                                                                <div class="grid grid-cols-2 gap-2">
+                                                                                                                                                                                    <input type="number" placeholder="Số suất" value="${g.servings || ''}" 
+                                                                                                                                                                                        oninput="updateAllergyGroupValue(${i}, 'servings', this.value)"
+                                                                                                                                                                                        class="w-full text-xs p-1.5 rounded border text-center font-bold outline-none">
+                                                                                                                                                                                    <input type="text" placeholder="Từ khóa (VD: tôm)" value="${g.keyword}" 
+                                                                                                                                                                                        oninput="updateAllergyGroupValue(${i}, 'keyword', this.value)"
+                                                                                                                                                                                        class="w-full text-xs p-1.5 rounded border text-red-600 bg-red-50/50 font-black outline-none">
+                                                                                                                                                                                </div>
+                                                                                                                                                                                <button type="button" onclick="removeAllergyGroup(${i})" class="absolute top-1 right-2 text-red-400 hover:text-red-600 text-[10px]">
+                                                                                                                                                                                    <i class="fas fa-times"></i>
+                                                                                                                                                                                </button>
+                                                                                                                                                                            </div>
+                                                                                                                                                                        `;
             }).join('');
 
             document.getElementById('allergy-servings').value = totalAllergy;
@@ -316,22 +369,22 @@
             let countVeg = chosenDishes.filter(d => d.meal_type === 'vegetarian').length;
 
             let tabsHtml = `
-                                                                                                                <button onclick="switchMealTab('normal')" id="tab-btn-normal" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                                                                                    🟢 Suất Thường <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countNormal}</span>
-                                                                                                                </button>
-                                                                                                                <button onclick="switchMealTab('vegetarian')" id="tab-btn-vegetarian" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                                                                                    🟡 Suất Chay <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countVeg}</span>
-                                                                                                                </button>
-                                                                                                            `;
+                                                                                                                                                                        <button onclick="switchMealTab('normal')" id="tab-btn-normal" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                                                                            🟢 Suất Thường <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countNormal}</span>
+                                                                                                                                                                        </button>
+                                                                                                                                                                        <button onclick="switchMealTab('vegetarian')" id="tab-btn-vegetarian" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                                                                            🟡 Suất Chay <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countVeg}</span>
+                                                                                                                                                                        </button>
+                                                                                                                                                                    `;
 
             allergyGroups.forEach((g, i) => {
                 let countGroup = chosenDishes.filter(d => d.meal_type === `allergy_nhom_${i}`).length;
                 tabsHtml += `
-                                                                                                                    <button onclick="switchMealTab('allergy_nhom_${i}')" id="tab-btn-allergy_nhom_${i}" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                                                                                        🔴 ${g.name || 'Nhóm dị ứng ' + (i + 1)} (${g.servings || 0}s) 
-                                                                                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">${countGroup}</span>
-                                                                                                                    </button>
-                                                                                                                `;
+                                                                                                                                                                            <button onclick="switchMealTab('allergy_nhom_${i}')" id="tab-btn-allergy_nhom_${i}" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                                                                                🔴 ${g.name || 'Nhóm dị ứng ' + (i + 1)} (${g.servings || 0}s) 
+                                                                                                                                                                                <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">${countGroup}</span>
+                                                                                                                                                                            </button>
+                                                                                                                                                                        `;
             });
 
             wrapper.innerHTML = tabsHtml;
@@ -416,12 +469,23 @@
 
                     if (isBlocked) {
                         return `<option value="${d.id}" disabled style="color: #dc2626; background-color: #fef2f2; font-weight: bold;">
-                                                                                                ⚠️ [${blockedReason}] ${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)
-                                                                                            </option>`;
+                                                                                                                                                        ⚠️ [${blockedReason}] ${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)
+                                                                                                                                                    </option>`;
                     }
 
                     return `<option value="${d.id}">${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)</option>`;
                 }).join('');
+
+            if ($('#select-dish-pool').hasClass("select2-hidden-accessible")) {
+                $('#select-dish-pool').select2('destroy');
+            }
+
+            $('#select-dish-pool').select2({
+                placeholder: '-- Chọn món ăn đưa vào thực đơn --',
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#planner-main-content')
+            });
         }
 
         function switchMealTab(tabName) {
@@ -434,7 +498,7 @@
 
         async function fetchAllDishesPool() {
             try {
-                const res = await fetch('/api/quan-ly-mon-an', {
+                const res = await fetch('/api/quan-ly-mon-an/all', {
                     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('access_token'), 'Accept': 'application/json' }
                 });
                 const json = await res.json();
@@ -619,24 +683,24 @@
             }
 
             tbody.innerHTML = filteredDishes.map(d => `
-                                                                                                                <tr class="border-t hover:bg-gray-50 transition">
-                                                                                                                    <td class="p-4">
-                                                                                                                        <div class="font-bold text-gray-800">${d.name}</div>
-                                                                                                                    </td>
-                                                                                                                    <td class="p-4 text-center">
-                                                                                                                        <input type="number" min="1" value="${d.quantity || 1}"
-                                                                                                                            onchange="updateDishQuantity(${d.id}, this.value)"
-                                                                                                                            class="w-20 text-center border border-gray-200 rounded-xl px-2 py-1">
-                                                                                                                    </td>
-                                                                                                                    <td class="p-4 text-center">${(navigator_calories(d) * Number(d.quantity || 1)).toFixed(1)}</td>
-                                                                                                                    <td class="p-4 text-right font-black">${Math.round((d.cost_per_serving || 0) * (d.quantity || 1)).toLocaleString()}đ</td>
-                                                                                                                    <td class="p-4 text-center">
-                                                                                                                        <button onclick="removeDish(${d.id})" class="text-red-500 hover:text-red-700 transition">
-                                                                                                                            <i class="fas fa-trash-alt"></i>
-                                                                                                                        </button>
-                                                                                                                    </td>
-                                                                                                                </tr>
-                                                                                                            `).join('');
+                                                                                                                                                                        <tr class="border-t hover:bg-gray-50 transition">
+                                                                                                                                                                            <td class="p-4">
+                                                                                                                                                                                <div class="font-bold text-gray-800">${d.name}</div>
+                                                                                                                                                                            </td>
+                                                                                                                                                                            <td class="p-4 text-center">
+                                                                                                                                                                                <input type="number" min="1" value="${d.quantity || 1}"
+                                                                                                                                                                                    onchange="updateDishQuantity(${d.id}, this.value)"
+                                                                                                                                                                                    class="w-20 text-center border border-gray-200 rounded-xl px-2 py-1">
+                                                                                                                                                                            </td>
+                                                                                                                                                                            <td class="p-4 text-center">${(navigator_calories(d) * Number(d.quantity || 1)).toFixed(1)}</td>
+                                                                                                                                                                            <td class="p-4 text-right font-black">${Math.round((d.cost_per_serving || 0) * (d.quantity || 1)).toLocaleString()}đ</td>
+                                                                                                                                                                            <td class="p-4 text-center">
+                                                                                                                                                                                <button onclick="removeDish(${d.id})" class="text-red-500 hover:text-red-700 transition">
+                                                                                                                                                                                    <i class="fas fa-trash-alt"></i>
+                                                                                                                                                                                </button>
+                                                                                                                                                                            </td>
+                                                                                                                                                                        </tr>
+                                                                                                                                                                    `).join('');
         }
 
         function navigator_calories(d) {
@@ -726,7 +790,20 @@
                 const json = await res.json();
 
                 if (res.ok) {
-                    alert("Lưu thực đơn thành công!");
+                    // Hiển thị QR
+                    const menuDate = document.getElementById('menu-date').value;
+                    const publicMenuUrl = `${window.location.origin}/public/menu?date=${menuDate}&target_audience_id=${selectedAudienceId}`;
+                    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicMenuUrl)}`;
+                    const qrImage = document.getElementById('qr-image');
+                    const qrModal = document.getElementById('qr-modal');
+
+                    if (qrImage && qrModal) {
+                        qrImage.src = qrApiUrl;
+                        qrModal.classList.remove('hidden');
+                    }
+
+                    alert("Hệ thống đã lưu thực đơn và tự động khởi tạo mã QR phân phối thành công!");
+
                     await fetchMenuOfSelectedDate();
                 } else {
                     alert(json.message || 'Lưu thất bại!');
@@ -736,7 +813,6 @@
                 alert("Lỗi hệ thống kết nối Server!");
             }
         }
-
         // Tối ưu Thực đơn
         async function triggerAutoOptimizeMenu() {
             if (!selectedAudienceId) { alert("Vui lòng cấu hình Khách hàng và Đối tượng trước!"); return; }
@@ -758,9 +834,9 @@
                 try {
                     // Hiển thị trạng thái chờ 
                     document.getElementById('selected-dish-tbody').innerHTML = `
-                                                                                <tr><td colspan="5" class="p-10 text-center text-indigo-600 font-bold">
-                                                                                    <i class="fas fa-spinner fa-spin mr-2"></i> Đang tính toán...
-                                                                                </td></tr>`;
+                                                                                                                                        <tr><td colspan="5" class="p-10 text-center text-indigo-600 font-bold">
+                                                                                                                                            <i class="fas fa-spinner fa-spin mr-2"></i> Đang tính toán...
+                                                                                                                                        </td></tr>`;
 
                     const res = await fetch('/api/daily-menus/auto-generate', {
                         method: 'POST',

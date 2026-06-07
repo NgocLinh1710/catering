@@ -76,11 +76,11 @@ def solve_optimization(data):
             for d in valid_dishes
         )
 
-        # Ít nhất 3 món
+        # Ít nhất 2 món
         prob += lpSum(
             dish_vars[d["id"]]
             for d in valid_dishes
-        ) >= 3
+        ) >= 2
 
         # Calories
         if calories_target > 0:
@@ -88,7 +88,7 @@ def solve_optimization(data):
                 dish_vars[d["id"]] *
                 float(d.get("calories_per_serving", 0))
                 for d in valid_dishes
-            ) >= calories_target
+            ) <= calories_target
 
         # Protein
         if protein_target > 0:
@@ -114,13 +114,13 @@ def solve_optimization(data):
                 for d in valid_dishes
             ) >= fiber_target
 
-        # Ngân sách (nới lỏng)
+        # Ngân sách
         if budget_target > 0:
             prob += lpSum(
                 dish_vars[d["id"]] *
                 float(d.get("cost_per_serving", 0))
                 for d in valid_dishes
-            ) <= budget_target * 1.5
+            ) <= budget_target
 
         cbc_path = r"C:\Users\ngocl\AppData\Local\Programs\Python\Python313\Lib\site-packages\pulp\solverdir\cbc\win\i64\cbc.exe"
 

@@ -48,3 +48,6 @@ Route::get('/thiet-lap-tieu-chuan', function () {
 Route::get('/lap-thuc-don', function () {
     return view('menu_planner');
 });
+
+// Route xem thực đơn công khai khi quét QR
+Route::get('/public/menu', [App\Http\Controllers\Api\DailyMenuController::class, 'showPublicMenu'])->name('public.menu');

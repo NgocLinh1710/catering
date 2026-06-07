@@ -151,4 +151,19 @@ class DishController extends Controller
             'message' => 'Xóa món ăn thành công'
         ]);
     }
+
+    public function all()
+    {
+        $companyId = auth()->user()->company_id ?? auth()->user()->id;
+
+        $dishes = Dish::with('ingredients')
+            ->where('company_id', $companyId)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $dishes
+        ]);
+    }
 }
