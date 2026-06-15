@@ -54,7 +54,7 @@
         </form>
 
         <div class="mt-6 text-center text-sm text-gray-500">
-            Công ty của bạn chưa có tài khoản?
+            Doanh nghiệp của bạn chưa có tài khoản?
             <a href="/dang-ky" class="text-green-600 font-medium hover:underline">Đăng ký ngay</a>
         </div>
     </div>
@@ -86,7 +86,7 @@
 
                         // Phân quyền điều hướng
                         if (role === 'admin') {
-                            window.location.href = '/tong-quan';
+                            window.location.href = '/admin/tong-quan';
                         }
                         else if (role === 'company' || role === 'company_admin') {
                             window.location.href = '/cong-ty/tong-quan';;

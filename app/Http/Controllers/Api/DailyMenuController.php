@@ -8,12 +8,11 @@ use App\Models\DailyMenu;
 use App\Models\TargetAudience;
 use App\Models\Dish;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DailyMenuController extends Controller
 {
-    /**
-     * Lấy thực đơn của ngày được chọn
-     */
+    // Lấy thực đơn của ngày được chọn
     public function getMenuByDate(Request $request)
     {
         $request->validate([
@@ -46,9 +45,7 @@ class DailyMenuController extends Controller
         ]);
     }
 
-    /**
-     * Lưu / cập nhật thực đơn tách biệt suất ăn 
-     */
+    // Lưu / cập nhật thực đơn 
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -177,6 +174,7 @@ class DailyMenuController extends Controller
         }
     }
 
+    // Tự động TỐI ƯU HÓA thực đơn
     public function autoGenerateMenu(Request $request)
     {
         $request->validate([
@@ -200,7 +198,6 @@ class DailyMenuController extends Controller
             'dishes' => $request->all_dishes
         ];
 
-        // Tạo và ghi dữ liệu ra file tạm để tránh lỗi Broken Pipe trên Windows XAMPP
         $tempInputFile = storage_path('app/baimat_input_' . time() . '.json');
         file_put_contents(
             storage_path('app/debug_payload.json'),
@@ -237,9 +234,7 @@ class DailyMenuController extends Controller
         return response()->json($result);
     }
 
-    /**
-     * Hiển thị thực đơn công khai cho khách hàng xem khi quét mã QR
-     */
+    // Hiển thị thực đơn công khai cho khách hàng xem khi quét mã QR
     public function showPublicMenu(Request $request)
     {
         $date = $request->query('date');
@@ -262,5 +257,100 @@ class DailyMenuController extends Controller
         $audience = TargetAudience::find($targetAudienceId);
 
         return view('public_menu_view', compact('menu', 'audience', 'date'));
+    }
+
+    // Lấy số liệu thống kê cho trang Dashboard của công ty 
+    public function getDashboardStats(Request $request)
+    {
+        try {
+            // Hỗ trợ linh hoạt cả Web Session và API Token
+            $currentUser = auth('sanctum')->user() ?? auth('web')->user() ?? auth()->user();
+
+            if (!$currentUser) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Yêu cầu đăng nhập hệ thống.'
+                ], 401);
+            }
+
+            $companyId = $currentUser->company_id ?? $currentUser->id;
+
+            $cardUnitQuery = DB::table('units');
+            if (Schema::hasColumn('units', 'company_id')) {
+                $cardUnitQuery->where('company_id', $companyId);
+            }
+            $cardUnitQuery->where(function ($q) {
+                $q->where('status', '!=', 'inactive')
+                    ->where('status', '!=', '0')
+                    ->orWhereNull('status');
+            });
+            $countClients = $cardUnitQuery->count();
+
+
+            $tableUnitQuery = DB::table('units');
+            if (Schema::hasColumn('units', 'company_id')) {
+                $tableUnitQuery->where('company_id', $companyId);
+            }
+            $clients = $tableUnitQuery->select('id', 'name', 'address', 'status')->get();
+
+            $countEmployees = DB::table('users')
+                ->where('role', 'employee')
+                ->where('company_id', $companyId)
+                ->where('status', 'active')
+                ->count();
+
+            $countIngredients = DB::table('ingredients')
+                ->where('company_id', $companyId)
+                ->count();
+
+            // Tính tổng số suất ăn từ bảng thực đơn ngày của công ty
+            $servingsQuery = DB::table('daily_menus');
+            if (Schema::hasColumn('units', 'company_id')) {
+                $servingsQuery->join('units', 'units.id', '=', 'daily_menus.unit_id')
+                    ->where('units.company_id', $companyId);
+            }
+
+            $servings = $servingsQuery->select(
+                DB::raw('SUM(normal_servings) as normal'),
+                DB::raw('SUM(vegetarian_servings) as veg'),
+                DB::raw('SUM(allergy_servings) as allergy')
+            )->first();
+
+            $normal = $servings ? ($servings->normal ?: 0) : 0;
+            $veg = $servings ? ($servings->veg ?: 0) : 0;
+            $allergy = $servings ? ($servings->allergy ?: 0) : 0;
+
+            $chartData = [
+                'labels' => ['Suất bình thường', 'Suất ăn chay', 'Suất ăn dị ứng'],
+                'values' => [(int) $normal, (int) $veg, (int) $allergy]
+            ];
+
+            return response()->json([
+                'status' => 'success',
+                'counts' => [
+                    'clients' => $countClients, // Số lượng active
+                    'employees' => $countEmployees,
+                    'ingredients' => $countIngredients
+                ],
+                'clients' => $clients, // Đầy đủ danh sách kể cả tạm ngưng
+                'chart' => $chartData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi kết xuất dữ liệu thống kê: ' . $e->getMessage(),
+                'counts' => [
+                    'clients' => 0,
+                    'employees' => 0,
+                    'ingredients' => 0
+                ],
+                'clients' => [],
+                'chart' => [
+                    'labels' => ['Suất bình thường', 'Suất ăn chay', 'Suất ăn dị ứng'],
+                    'values' => [0, 0, 0]
+                ]
+            ]);
+        }
     }
 }

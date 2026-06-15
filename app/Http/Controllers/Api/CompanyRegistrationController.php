@@ -39,4 +39,29 @@ class CompanyRegistrationController extends Controller
             'message' => 'Đã gửi yêu cầu thành công!'
         ]);
     }
+
+    public function getPendingCompanies(Request $request)
+    {
+        $search = $request->search;
+
+        $pending = CompanyRegistration::query()
+            ->where('status', 'pending')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('company_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('contact_person', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $pending->items(),
+            'current_page' => $pending->currentPage(),
+            'last_page' => $pending->lastPage(),
+            'total' => $pending->total()
+        ]);
+    }
 }

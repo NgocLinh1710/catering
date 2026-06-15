@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\CompanyApprovalController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
+// Tuyến đường mặc định và Đăng nhập/Đăng ký
 Route::get('/', function () {
     return view('welcome');
 });
@@ -11,16 +13,18 @@ Route::get('/login', function () {
     return view('login');
 });
 
-Route::get('/tong-quan', function () {
-    return "Đây là trang Tổng quan dành cho Admin!";
-});
-
 Route::get('/dang-ky', function () {
     return view('register');
 });
 
+// ADMIN
+Route::get('/admin/tong-quan', [AdminDashboardController::class, 'index']);
+
+// TRANG DUYỆT CÔNG TY ĐĂNG KÝ MỚI
 Route::get('/admin/duyet-cong-ty', [CompanyApprovalController::class, 'index']);
 
+
+// DOANH NGHIỆP VÀ NHÂN VIÊN
 Route::get('/cong-ty/tong-quan', function () {
     return view('company.dashboard');
 });

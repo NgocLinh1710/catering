@@ -13,9 +13,6 @@
             </div>
 
             <select id="filterYear" class="border rounded-lg px-3 py-2" onchange="loadUnits()">
-                @for($i = date('Y'); $i >= 2020; $i--)
-                    <option value="{{ $i }}">{{ $i }}</option>
-                @endfor
             </select>
 
             <select id="filterMonth" class="border rounded-lg px-3 py-2" onchange="loadUnits()">
@@ -112,6 +109,8 @@
 
         let currentUnitId = null;
         let editingUnitId = null;
+        let isYearRendered = false;
+
         const paginator = typeof PaginationManager === 'function'
             ? PaginationManager({ containerId: 'pagination', loadFunction: loadUnits })
             : { currentPage: 1, searchKeyword: '', render: function () { } };
@@ -120,7 +119,8 @@
             paginator.currentPage = page;
             paginator.searchKeyword = search;
 
-            const year = document.getElementById('filterYear').value;
+            const filterYearEl = document.getElementById('filterYear');
+            const year = filterYearEl ? filterYearEl.value : '';
             const month = document.getElementById('filterMonth').value;
             const searchVal = search || document.getElementById('searchInput').value;
 
@@ -129,6 +129,16 @@
             })
                 .then(res => res.json())
                 .then(res => {
+                    if (!isYearRendered && res.min_year) {
+                        const currentYear = new Date().getFullYear();
+                        let yearOptions = '';
+                        for (let y = currentYear; y >= res.min_year; y--) {
+                            yearOptions += `<option value="${y}">${y}</option>`;
+                        }
+                        filterYearEl.innerHTML = yearOptions;
+                        isYearRendered = true;
+                    }
+
                     const tbody = document.getElementById('unit-table-body');
                     tbody.innerHTML = '';
 
@@ -138,41 +148,41 @@
                         tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Không tìm thấy khách hàng nào.</td></tr>';
                     } else {
                         res.data.forEach(unit => {
-                            const tempConsumption = 5000000;
+                            const dynamicConsumption = unit.total_consumption ?? 0;
                             const isInactive = unit.status === 'inactive';
 
                             const employeesList = unit.employees || [];
                             const assignedEmployeeIds = employeesList.map(e => e.id);
 
                             tbody.innerHTML += `
-                                        <tr class="border-b hover:bg-gray-50 ${isInactive ? 'bg-gray-100' : ''}">
-                                            <td class="p-4 font-semibold ${isInactive ? 'text-gray-400' : 'text-gray-800'}">
-                                                ${unit.name} ${isInactive ? '<span class="text-xs font-normal text-red-500">(Ngừng hợp tác)</span>' : ''}
-                                            </td>
-                                            <td class="p-4 ${isInactive ? 'text-gray-400' : 'text-gray-600'}">${unit.address || 'N/A'}</td>
-                                            <td class="p-4 text-center font-bold ${isInactive ? 'text-gray-400' : 'text-blue-600'}">
-                                                ${Number(tempConsumption).toLocaleString()}đ
-                                            </td>
-                                            <td class="p-4">
-                                                ${employeesList.map(e => `
-                                                    <span class="${isInactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'} px-2 py-1 rounded text-xs mr-1">
-                                                        ${e.name}
-                                                    </span>`).join('')}
-                                            </td>
-                                            <td class="p-4 text-center">
-                                                <button onclick="openUnitModal(${unit.id}, '${unit.name}', '${unit.address || ''}', ${JSON.stringify(assignedEmployeeIds)})" 
-                                                        class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
+                                                <tr class="border-b hover:bg-gray-50 ${isInactive ? 'bg-gray-100' : ''}">
+                                                    <td class="p-4 font-semibold ${isInactive ? 'text-gray-400' : 'text-gray-800'}">
+                                                        ${unit.name} ${isInactive ? '<span class="text-xs font-normal text-red-500">(Ngừng hợp tác)</span>' : ''}
+                                                    </td>
+                                                    <td class="p-4 ${isInactive ? 'text-gray-400' : 'text-gray-600'}">${unit.address || 'N/A'}</td>
+                                                    <td class="p-4 text-center font-bold ${isInactive ? 'text-gray-400' : 'text-blue-600'}">
+                                                        ${Number(dynamicConsumption).toLocaleString()}đ
+                                                    </td>
+                                                    <td class="p-4">
+                                                        ${employeesList.map(e => `
+                                                            <span class="${isInactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'} px-2 py-1 rounded text-xs mr-1">
+                                                                ${e.name}
+                                                            </span>`).join('')}
+                                                    </td>
+                                                    <td class="p-4 text-center">
+                                                        <button onclick="openUnitModal(${unit.id}, '${unit.name}', '${unit.address || ''}', ${JSON.stringify(assignedEmployeeIds)})" 
+                                                                class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
 
-                                                <button onclick="toggleUnitStatus(${unit.id}, '${unit.status}')" 
-                                                        class="${isInactive ? 'text-green-500' : 'text-orange-500'} hover:opacity-70 transition" 
-                                                        title="${isInactive ? 'Kích hoạt lại' : 'Ngừng hợp tác'}">
-                                                    <i class="fas ${isInactive ? 'fa-unlock' : 'fa-ban'}"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `;
+                                                        <button onclick="toggleUnitStatus(${unit.id}, '${unit.status}')" 
+                                                                class="${isInactive ? 'text-green-500' : 'text-orange-500'} hover:opacity-70 transition" 
+                                                                title="${isInactive ? 'Kích hoạt lại' : 'Ngừng hợp tác'}">
+                                                            <i class="fas ${isInactive ? 'fa-unlock' : 'fa-ban'}"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `;
                         });
                     }
 
@@ -207,16 +217,16 @@
                         const canSelect = !isInactive || isAssigned;
 
                         return `
-                                    <label class="flex items-center p-1 hover:bg-gray-50 cursor-pointer text-sm ${isInactive ? 'text-red-400' : ''}">
-                                        <input type="checkbox" name="modal_emp_ids" value="${emp.id}" 
-                                            ${isAssigned ? 'checked' : ''} 
-                                            ${!canSelect ? 'disabled' : ''} 
-                                            class="mr-2 h-4 w-4">
-                                        <span>
-                                            ${emp.name} ${isInactive ? '<b class="text-xs">(Tài khoản bị khóa)</b>' : ''}
-                                        </span>
-                                    </label>
-                                `;
+                                            <label class="flex items-center p-1 hover:bg-gray-50 cursor-pointer text-sm ${isInactive ? 'text-red-400' : ''}">
+                                                <input type="checkbox" name="modal_emp_ids" value="${emp.id}" 
+                                                    ${isAssigned ? 'checked' : ''} 
+                                                    ${!canSelect ? 'disabled' : ''} 
+                                                    class="mr-2 h-4 w-4">
+                                                <span>
+                                                    ${emp.name} ${isInactive ? '<b class="text-xs">(Tài khoản bị khóa)</b>' : ''}
+                                                </span>
+                                            </label>
+                                        `;
                     }).join('');
                 });
         }
@@ -258,16 +268,29 @@
 
             fetch(url, {
                 method: method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 body: JSON.stringify(payload)
-            }).then(res => {
-                if (res.ok) {
+            })
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw new Error(data.message || 'Có lỗi xảy ra, vui lòng kiểm tra lại.');
+                    }
+                    return data;
+                })
+                .then(res => {
+                    // Xử lý khi thành công
                     closeUnitModal();
                     loadUnits();
-                } else {
-                    alert('Có lỗi xảy ra, vui lòng kiểm tra lại.');
-                }
-            });
+                    alert(editingUnitId ? 'Cập nhật thông tin thành công!' : 'Thêm khách hàng thành công!');
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
         });
 
         function toggleUnitStatus(id, currentStatus) {

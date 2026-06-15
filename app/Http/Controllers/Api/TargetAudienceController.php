@@ -29,7 +29,7 @@ class TargetAudienceController extends Controller
         ]);
     }
 
-    // Lưu nhóm đối tượng mới + Thiết lập tiêu chuẩn
+    // Lưu nhóm đối tượng mới + Thiết lập tiêu chuẩn (Cấu hình giới hạn gói Free)
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -49,11 +49,32 @@ class TargetAudienceController extends Controller
             'restrictions.*.quantity' => 'required|integer|min:1'
         ]);
 
+        $user = auth()->user();
+        $registration = \App\Models\CompanyRegistration::where('email', $user->email)->first();
+
+        if ($registration) {
+            // Kiểm tra xem chuỗi thông tin người đại diện có chứa từ khóa đã nâng cấp chưa
+            $isExpanded = str_contains($registration->contact_person, '(Đã mở rộng Quy mô)');
+
+            if (!$isExpanded) {
+                // Nếu chưa được mở rộng (Đang dùng gói Free) -> Tiến hành đếm số khách hàng đã có
+                $unitIds = $user->units()->pluck('units.id')->toArray();
+                $currentAudienceCount = TargetAudience::whereIn('unit_id', $unitIds)->count();
+
+                // Thiết lập giới hạn gói Free (Tối đa 5 khách hàng)
+                if ($currentAudienceCount >= 5) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Tài khoản Gói Free chỉ được tạo tối đa 3 khách hàng! Vui lòng liên hệ Admin để được Mở rộng quy mô.'
+                    ], 403);
+                }
+            }
+        }
+
         $audience = TargetAudience::create($data);
+
         if (!empty($request->restrictions)) {
-
             foreach ($request->restrictions as $r) {
-
                 TargetAudienceRestriction::create([
                     'target_audience_id' => $audience->id,
                     'tag' => $r['tag'],

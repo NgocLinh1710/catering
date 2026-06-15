@@ -53,8 +53,8 @@ window.PaginationManager = function ({
                 btn.innerText = i;
 
                 btn.className = `px-3 py-1 border rounded ${i === currPage
-                        ? 'bg-green-400 text-white font-bold'
-                        : 'bg-white text-gray-600'
+                    ? 'bg-green-400 text-white font-bold'
+                    : 'bg-white text-gray-600'
                     }`;
 
                 btn.onclick = () => loadFunction(i, this.searchKeyword);

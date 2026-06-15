@@ -13,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <style>
-        /* Đảm bảo menu ẩn mượt mà trước khi JS check role */
         .menu-item {
             display: none;
         }
@@ -67,7 +66,7 @@
 
             <a href="/admin/duyet-cong-ty" id="menu-companies"
                 class="menu-item items-center px-4 py-3 {{ Request::is('admin/duyet-cong-ty') ? 'bg-[#86efac] text-gray-900 shadow-md' : 'text-gray-300 hover:bg-gray-800' }} rounded-lg transition">
-                <i class="fas fa-shield-alt w-6"></i> Duyệt Công ty
+                <i class="fas fa-shield-alt w-6"></i> Duyệt Doanh nghiệp
             </a>
         </nav>
 

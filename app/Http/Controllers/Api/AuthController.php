@@ -19,7 +19,6 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Sai tài khoản hoặc mật khẩu
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 'error',
@@ -27,15 +26,28 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Tài khoản bị khóa
-        if ($user->status !== 'active') {
+        // Kiểm tra trạng thái tài khoản của chính user đó
+        if (isset($user->status) && $user->status === 'locked') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Tài khoản của bạn đã bị khóa!'
+                'message' => 'Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Quản lý hoặc Admin để biết thêm chi tiết.'
             ], 403);
         }
 
-        // Tạo token
+        // Nếu là nhân viên, kiểm tra xem Doanh nghiệp chủ quản có đang bị khóa không -> Nếu có thì khóa cả tài khoản Nhân viên
+        if (!in_array($user->role, ['admin', 'company', 'company_admin'])) {
+            if (!empty($user->company_id)) {
+                $companyOwner = User::find($user->company_id);
+
+                if ($companyOwner && $companyOwner->status === 'locked') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Hệ thống tạm thời gián đoạn do tài khoản Doanh nghiệp chủ quản đã bị khóa! Vui lòng liên hệ đại diện công ty của bạn.'
+                    ], 403);
+                }
+            }
+        }
+
         $token = $user->createToken('CateringAppToken')->plainTextToken;
 
         return response()->json([
@@ -49,7 +61,7 @@ class AuthController extends Controller
     // Hàm logout
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'status' => 'success',

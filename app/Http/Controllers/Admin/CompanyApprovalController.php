@@ -37,7 +37,7 @@ class CompanyApprovalController extends Controller
             'name' => $company->contact_person,
             'email' => $company->email,
             'password' => Hash::make($randomPassword),
-            'role' => 'company_admin', // Cấp quyền Admin của Công ty Catering
+            'role' => 'company', // Cấp quyền Admin của Công ty Catering
         ]);
 
         // Đổi trạng thái thành Đã duyệt
@@ -49,6 +49,23 @@ class CompanyApprovalController extends Controller
             'status' => 'success',
             'email' => $company->email,
             'password' => $randomPassword
+        ]);
+    }
+
+    // Hàm từ chối yêu cầu đăng ký
+    public function reject($id)
+    {
+        // Tìm doanh nghiệp đang ở trạng thái pending
+        $company = \App\Models\CompanyRegistration::where('id', $id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        // Cập nhật trạng thái thành 'rejected'
+        $company->update(['status' => 'rejected']);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Đã từ chối yêu cầu đăng ký của doanh nghiệp này thành công!'
         ]);
     }
 }
