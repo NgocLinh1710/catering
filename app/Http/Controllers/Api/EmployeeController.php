@@ -45,11 +45,21 @@ class EmployeeController extends Controller
     // Lưu Nhân viên mới
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6'
-        ]);
+        $request->validate(
+            [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => [
+                    'required',
+                    'min:6',
+                    'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'
+                ]
+            ],
+            [
+                'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+                'password.regex' => 'Mật khẩu phải chứa cả chữ cái và số.'
+            ]
+        );
 
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id ?? $currentUser->id;
@@ -83,6 +93,14 @@ class EmployeeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
+            'password' => [
+                'nullable',
+                'min:6',
+                'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'
+            ]
+        ], [
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'password.regex' => 'Mật khẩu phải chứa cả chữ cái và số.'
         ]);
 
         $employee->name = $request->name;
@@ -129,11 +147,37 @@ class EmployeeController extends Controller
             ->where('company_id', $companyId)
             ->firstOrFail();
 
-        $employee->delete();
+        try {
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Đã xóa nhân viên vĩnh viễn'
-        ]);
+            \DB::beginTransaction();
+
+            \DB::table('unit_user')
+                ->where('user_id', $employee->id)
+                ->delete();
+
+            \App\Models\Dish::where('created_by', $employee->id)
+                ->delete();
+
+            \App\Models\Dish::where('company_id', $employee->id)
+                ->delete();
+
+            $employee->delete();
+
+            \DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Đã xóa nhân viên và toàn bộ dữ liệu liên quan.'
+            ]);
+
+        } catch (\Exception $e) {
+
+            \DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

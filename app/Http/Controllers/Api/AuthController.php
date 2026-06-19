@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\CompanyRegistration;
 
 class AuthController extends Controller
 {
@@ -19,14 +20,48 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        // Chưa có tài khoản chính thức
+        if (!$user) {
+
+            // Đang chờ duyệt
+            $pendingRequest = CompanyRegistration::where('email', $request->email)
+                ->where('status', 'pending')
+                ->exists();
+
+            if ($pendingRequest) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Yêu cầu đăng ký của bạn đang chờ quản trị viên phê duyệt.'
+                ], 403);
+            }
+
+            // Đã bị từ chối
+            $rejectedRequest = CompanyRegistration::where('email', $request->email)
+                ->where('status', 'rejected')
+                ->exists();
+
+            if ($rejectedRequest) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Yêu cầu đăng ký của bạn đã bị từ chối. Vui lòng đăng ký lại hoặc liên hệ quản trị viên.'
+                ], 403);
+            }
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Email hoặc mật khẩu không chính xác!'
             ], 401);
         }
 
-        // Kiểm tra trạng thái tài khoản của chính user đó
+        // Sai mật khẩu
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email hoặc mật khẩu không chính xác!'
+            ], 401);
+        }
+
+        // Tài khoản bị khóa
         if (isset($user->status) && $user->status === 'locked') {
             return response()->json([
                 'status' => 'error',
@@ -34,9 +69,11 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Nếu là nhân viên, kiểm tra xem Doanh nghiệp chủ quản có đang bị khóa không -> Nếu có thì khóa cả tài khoản Nhân viên
+        // Nhân viên thuộc công ty bị khóa
         if (!in_array($user->role, ['admin', 'company', 'company_admin'])) {
+
             if (!empty($user->company_id)) {
+
                 $companyOwner = User::find($user->company_id);
 
                 if ($companyOwner && $companyOwner->status === 'locked') {

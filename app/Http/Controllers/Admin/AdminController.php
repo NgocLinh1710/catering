@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\CompanyRegistration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -42,10 +43,136 @@ class AdminController extends Controller
     // Hàm xử lý XÓA doanh nghiệp
     public function deleteCompany($id)
     {
-        $user = User::findOrFail($id);
-        CompanyRegistration::where('email', $user->email)->delete();
-        $user->delete();
-        return response()->json(['success' => true, 'message' => 'Đã xóa vĩnh viễn doanh nghiệp khỏi hệ thống!']);
+        \DB::beginTransaction();
+
+        try {
+
+            $company = User::findOrFail($id);
+
+            $employeeIds = User::where('company_id', $company->id)
+                ->pluck('id')
+                ->toArray();
+
+            $allUserIds = array_merge([$company->id], $employeeIds);
+
+            \DB::table('personal_access_tokens')
+                ->where('tokenable_type', 'App\Models\User')
+                ->whereIn('tokenable_id', $allUserIds)
+                ->delete();
+
+            \DB::table('unit_user')
+                ->whereIn('user_id', $allUserIds)
+                ->delete();
+
+            $dishIds = \DB::table('dishes')
+                ->where(function ($q) use ($company, $allUserIds) {
+                    $q->where('company_id', $company->id)
+                        ->orWhereIn('created_by', $allUserIds);
+                })
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($dishIds)) {
+
+                \DB::table('dish_ingredients')
+                    ->whereIn('dish_id', $dishIds)
+                    ->delete();
+
+                \DB::table('daily_menu_dish')
+                    ->whereIn('dish_id', $dishIds)
+                    ->delete();
+
+                \DB::table('dishes')
+                    ->whereIn('id', $dishIds)
+                    ->delete();
+            }
+
+            $unitIds = \DB::table('units')
+                ->where('company_id', $company->id)
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($unitIds)) {
+
+                $targetAudienceIds = \DB::table('target_audiences')
+                    ->whereIn('unit_id', $unitIds)
+                    ->pluck('id')
+                    ->toArray();
+
+                if (!empty($targetAudienceIds)) {
+
+                    \DB::table('target_audience_restrictions')
+                        ->whereIn('target_audience_id', $targetAudienceIds)
+                        ->delete();
+
+                    $dailyMenuIds = \DB::table('daily_menus')
+                        ->whereIn('target_audience_id', $targetAudienceIds)
+                        ->pluck('id')
+                        ->toArray();
+
+                    if (!empty($dailyMenuIds)) {
+
+                        \DB::table('daily_menu_dish')
+                            ->whereIn('daily_menu_id', $dailyMenuIds)
+                            ->delete();
+
+                        \DB::table('daily_menus')
+                            ->whereIn('id', $dailyMenuIds)
+                            ->delete();
+                    }
+
+                    \DB::table('target_audiences')
+                        ->whereIn('id', $targetAudienceIds)
+                        ->delete();
+                }
+
+                \DB::table('unit_user')
+                    ->whereIn('unit_id', $unitIds)
+                    ->delete();
+
+                \DB::table('units')
+                    ->whereIn('id', $unitIds)
+                    ->delete();
+            }
+
+            $ingredientIds = \DB::table('ingredients')
+                ->where('company_id', $company->id)
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($ingredientIds)) {
+
+                \DB::table('ingredient_prices')
+                    ->whereIn('ingredient_id', $ingredientIds)
+                    ->delete();
+
+                \DB::table('ingredients')
+                    ->whereIn('id', $ingredientIds)
+                    ->delete();
+            }
+
+            User::where('company_id', $company->id)->delete();
+
+            CompanyRegistration::where('email', $company->email)->delete();
+
+            $company->delete();
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã xóa toàn bộ dữ liệu doanh nghiệp thành công!'
+            ]);
+
+        } catch (\Exception $e) {
+
+            \DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // Hàm xử lý NÂNG CẤP / MỞ RỘNG QUY MÔ Khách hàng
@@ -68,7 +195,7 @@ class AdminController extends Controller
         $search = $request->search;
 
         $companies = User::query()
-            ->select('users.*', 'company_registrations.company_name', 'company_registrations.contact_person')
+            ->select('users.*', 'company_registrations.company_name', 'company_registrations.contact_person', 'company_registrations.phone as phone')
             ->leftJoin('company_registrations', 'company_registrations.email', '=', 'users.email')
             ->whereIn('users.role', ['company', 'company_admin'])
             ->when($search, function ($query) use ($search) {

@@ -177,11 +177,28 @@ class DailyMenuController extends Controller
     // Tự động TỐI ƯU HÓA thực đơn
     public function autoGenerateMenu(Request $request)
     {
-        $request->validate([
-            'target_audience_id' => 'required|exists:target_audiences,id',
-            'forbidden_keywords' => 'nullable|array',
-            'all_dishes' => 'required|array'
-        ]);
+        if (
+            !$request->has('all_dishes') ||
+            !is_array($request->all_dishes) ||
+            count($request->all_dishes) === 0
+        ) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Vui lòng thêm ít nhất 1 món ăn trước khi tối ưu thực đơn.'
+            ], 422);
+        }
+
+        $request->validate(
+            [
+                'target_audience_id' => 'required|exists:target_audiences,id',
+                'forbidden_keywords' => 'nullable|array',
+                'all_dishes' => 'array'
+            ],
+            [
+                'target_audience_id.required' => 'Vui lòng chọn đối tượng ăn.',
+                'target_audience_id.exists' => 'Đối tượng ăn không tồn tại.'
+            ]
+        );
 
         // Lấy thông tin định mức dinh dưỡng của đối tượng mục tiêu
         $audience = TargetAudience::find($request->target_audience_id);

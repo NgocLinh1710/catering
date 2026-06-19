@@ -22,7 +22,6 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 text-gray-600 border-b border-gray-200 text-sm uppercase">
-                    <th class="p-4">STT</th>
                     <th class="p-4">Họ và Tên</th>
                     <th class="p-4">Email Đăng nhập</th>
                     <th class="p-4 text-center">Trạng thái</th>
@@ -31,7 +30,7 @@
             </thead>
             <tbody id="employee-table-body">
                 <tr>
-                    <td colspan="5" class="p-4 text-center text-gray-500">Đang tải dữ liệu...</td>
+                    <td colspan="4" class="p-4 text-center text-gray-500">Đang tải dữ liệu...</td>
                 </tr>
             </tbody>
         </table>
@@ -53,7 +52,9 @@
                     class="w-full p-2 mb-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-300">
 
                 <input type="password" id="emp_password" placeholder="Mật khẩu" minlength="6"
-                    class="w-full p-2 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-300">
+                    class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-300">
+
+                <span id="passwordError" class="text-red-500 italic text-xs mt-1 block hidden"></span>
 
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeModal()"
@@ -90,8 +91,7 @@
                     const tableBody = document.getElementById('employee-table-body');
                     tableBody.innerHTML = '';
 
-                    res.data.forEach((emp, index) => {
-                        let stt = index + 1;
+                    res.data.forEach((emp) => {
                         // Kiểm tra trạng thái để hiển thị màu sắc
                         const statusBadge = emp.status === 'inactive'
                             ? '<span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-bold uppercase">Bị Khóa</span>'
@@ -101,23 +101,22 @@
                         const lockTitle = emp.status === 'inactive' ? 'Mở khóa' : 'Khóa tài khoản';
 
                         tableBody.innerHTML += `
-                                                                                                                    <tr class="border-b hover:bg-gray-50 ${emp.status === 'inactive' ? 'bg-gray-50' : ''}">
-                                                                                                                        <td class="p-4 text-gray-700 font-medium">${stt}</td> 
-                                                                                                                        <td class="p-4 font-semibold ${emp.status === 'inactive' ? 'text-gray-400' : 'text-gray-800'}">${emp.name}</td>
-                                                                                                                        <td class="p-4 text-gray-600">${emp.email}</td>
-                                                                                                                        <td class="p-4 text-center">${statusBadge}</td>
-                                                                                                                        <td class="p-4 text-center">
-                                                                                                                            <button onclick="openModal(${emp.id}, '${emp.name}', '${emp.email}')" class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
-                                                                                                                                <i class="fas fa-edit"></i>
-                                                                                                                            </button>
-                                                                                                                            <button onclick="toggleEmployeeStatus(${emp.id}, '${emp.status}')" class="hover:opacity-70 transition mr-3" title="${lockTitle}">
-                                                                                                                                <i class="fas ${lockIcon}"></i>
-                                                                                                                            </button>
-                                                                                                                            <button onclick="deletePermanent(${emp.id})" class="text-red-500 hover:text-red-700" title="Xóa vĩnh viễn">
-                                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                                            </button>
-                                                                                                                        </td>
-                                                                                                                    </tr>`;
+                                                                                                                                    <tr class="border-b hover:bg-gray-50 ${emp.status === 'inactive' ? 'bg-gray-50' : ''}">
+                                                                                                                                        <td class="p-4 font-semibold ${emp.status === 'inactive' ? 'text-gray-400' : 'text-gray-800'}">${emp.name}</td>
+                                                                                                                                        <td class="p-4 text-gray-600">${emp.email}</td>
+                                                                                                                                        <td class="p-4 text-center">${statusBadge}</td>
+                                                                                                                                        <td class="p-4 text-center">
+                                                                                                                                            <button onclick="openModal(${emp.id}, '${emp.name}', '${emp.email}')" class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
+                                                                                                                                                <i class="fas fa-edit"></i>
+                                                                                                                                            </button>
+                                                                                                                                            <button onclick="toggleEmployeeStatus(${emp.id}, '${emp.status}')" class="hover:opacity-70 transition mr-3" title="${lockTitle}">
+                                                                                                                                                <i class="fas ${lockIcon}"></i>
+                                                                                                                                            </button>
+                                                                                                                                            <button onclick="deletePermanent(${emp.id})" class="text-red-500 hover:text-red-700" title="Xóa vĩnh viễn">
+                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                            </button>
+                                                                                                                                        </td>
+                                                                                                                                    </tr>`;
                     });
 
                     document.getElementById('totalItems').innerText = res.total;
@@ -164,6 +163,9 @@
         // Xử lý gửi Form 
         document.getElementById('addEmployeeForm').addEventListener('submit', function (e) {
             e.preventDefault();
+            if (!validatePassword()) {
+                return;
+            }
 
             const payload = {
                 name: document.getElementById('emp_name').value,
@@ -260,6 +262,43 @@
                     });
             }
         }
+
+        const passwordInput = document.getElementById('emp_password');
+        const passwordError = document.getElementById('passwordError');
+
+        function validatePassword() {
+
+            // Khi đang sửa nhân viên và để trống mật khẩu
+            if (editingId && passwordInput.value.trim() === '') {
+                passwordError.classList.add('hidden');
+                return true;
+            }
+
+            const password = passwordInput.value;
+
+            if (password.length < 6) {
+                passwordError.textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+                passwordError.classList.remove('hidden');
+                return false;
+            }
+
+            if (!/[A-Za-z]/.test(password)) {
+                passwordError.textContent = 'Mật khẩu phải chứa ít nhất 1 chữ cái';
+                passwordError.classList.remove('hidden');
+                return false;
+            }
+
+            if (!/[0-9]/.test(password)) {
+                passwordError.textContent = 'Mật khẩu phải chứa ít nhất 1 chữ số';
+                passwordError.classList.remove('hidden');
+                return false;
+            }
+
+            passwordError.classList.add('hidden');
+            return true;
+        }
+
+        passwordInput.addEventListener('input', validatePassword);
 
         document.addEventListener('DOMContentLoaded', loadEmployees);
     </script>

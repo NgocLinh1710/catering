@@ -11,12 +11,15 @@ class CompanyRegistrationController extends Controller
 {
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'company_name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'email' => 'required|email|unique:company_registrations,email',
-            'phone' => 'required|string|max:20',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'company_name' => 'required|string|max:255',
+                'contact_person' => 'required|string|max:255',
+                'email' => 'required|email',
+                'phone' => 'required|digits:10',
+            ]
+        );
 
         if ($validator->fails()) {
             return response()->json([
@@ -25,7 +28,28 @@ class CompanyRegistrationController extends Controller
             ], 400);
         }
 
-        //  Lưu bảng vào "chờ duyệt"
+        $emailExists = CompanyRegistration::where('email', $request->email)
+            ->whereIn('status', ['pending', 'approved'])
+            ->exists();
+
+        if ($emailExists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email đã được đăng ký.'
+            ], 400);
+        }
+
+        $phoneExists = CompanyRegistration::where('phone', $request->phone)
+            ->whereIn('status', ['pending', 'approved'])
+            ->exists();
+
+        if ($phoneExists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Số điện thoại đã được đăng ký.'
+            ], 400);
+        }
+
         CompanyRegistration::create([
             'company_name' => $request->company_name,
             'contact_person' => $request->contact_person,

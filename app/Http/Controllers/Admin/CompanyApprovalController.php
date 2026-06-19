@@ -26,25 +26,33 @@ class CompanyApprovalController extends Controller
         $company = CompanyRegistration::find($id);
 
         if (!$company || $company->status !== 'pending') {
-            return response()->json(['status' => 'error', 'message' => 'Yêu cầu không tồn tại hoặc đã được xử lý!'], 400);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Yêu cầu không tồn tại hoặc đã được xử lý!'
+            ], 400);
         }
 
-        // Sinh mật khẩu ngẫu nhiên (8 ký tự)
+        // Xóa tất cả bản ghi rejected cùng email
+        CompanyRegistration::where('email', $company->email)
+            ->where('status', 'rejected')
+            ->delete();
+
+        // Sinh mật khẩu ngẫu nhiên
         $randomPassword = Str::random(8);
 
-        // Tạo tài khoản chính thức cho Công ty
+        // Tạo tài khoản doanh nghiệp
         User::create([
             'name' => $company->contact_person,
             'email' => $company->email,
             'password' => Hash::make($randomPassword),
-            'role' => 'company', // Cấp quyền Admin của Công ty Catering
+            'role' => 'company',
+            'status' => 'active'
         ]);
 
-        // Đổi trạng thái thành Đã duyệt
-        $company->status = 'approved';
+        // Chuyển bản ghi hiện tại sang active
+        $company->status = 'active';
         $company->save();
 
-        // Trả kết quả về cho FE
         return response()->json([
             'status' => 'success',
             'email' => $company->email,
@@ -55,17 +63,24 @@ class CompanyApprovalController extends Controller
     // Hàm từ chối yêu cầu đăng ký
     public function reject($id)
     {
-        // Tìm doanh nghiệp đang ở trạng thái pending
-        $company = \App\Models\CompanyRegistration::where('id', $id)
+        $company = CompanyRegistration::where('id', $id)
             ->where('status', 'pending')
-            ->firstOrFail();
+            ->first();
 
-        // Cập nhật trạng thái thành 'rejected'
-        $company->update(['status' => 'rejected']);
+        if (!$company) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Yêu cầu không tồn tại hoặc đã được xử lý!'
+            ], 400);
+        }
+
+        // Xóa khỏi danh sách đăng ký
+        $company->status = 'rejected';
+        $company->save();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Đã từ chối yêu cầu đăng ký của doanh nghiệp này thành công!'
+            'message' => 'Đã từ chối và xóa yêu cầu đăng ký!'
         ]);
     }
 }

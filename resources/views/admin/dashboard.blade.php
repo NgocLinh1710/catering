@@ -87,12 +87,12 @@
 
                     if (!res.data || res.data.length === 0) {
                         tableBody.innerHTML = `
-                                <tr>
-                                    <td colspan="6" class="p-8 text-center text-gray-500">
-                                        <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
-                                        Không tìm thấy doanh nghiệp nào phù hợp.
-                                    </td>
-                                </tr>`;
+                                    <tr>
+                                        <td colspan="6" class="p-8 text-center text-gray-500">
+                                            <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
+                                            Không tìm thấy doanh nghiệp nào phù hợp.
+                                        </td>
+                                    </tr>`;
                         return;
                     }
 
@@ -103,48 +103,48 @@
                         const cleanContact = rawContact.replace(' (Đã mở rộng Quy mô)', '');
 
                         tableBody.innerHTML += `
-                                <tr class="border-b hover:bg-gray-50 text-sm">
-                                    <td class="p-4 font-semibold text-gray-800">${company.company_name || 'N/A'}</td>
-                                    <td class="p-4 text-gray-600">${cleanContact || 'N/A'}</td>
-                                    <td class="p-4">
-                                        <div><i class="fas fa-envelope text-gray-400 mr-1"></i>${company.email}</div>
-                                        <div><i class="fas fa-phone text-gray-400 mr-1"></i>${company.phone || 'N/A'}</div>
-                                    </td>
-                                    <td class="p-4">
-                                        ${isExpanded ? `
-                                            <span class="px-2 py-1 rounded bg-purple-100 text-purple-700 text-xs font-bold shadow-sm">
-                                                <i class="fas fa-crown mr-1"></i> Không giới hạn
+                                    <tr class="border-b hover:bg-gray-50 text-sm">
+                                        <td class="p-4 font-semibold text-gray-800">${company.company_name || 'N/A'}</td>
+                                        <td class="p-4 text-gray-600">${cleanContact || 'N/A'}</td>
+                                        <td class="p-4">
+                                            <div><i class="fas fa-envelope text-gray-400 mr-1"></i>${company.email}</div>
+                                            <div><i class="fas fa-phone text-gray-400 mr-1"></i>${company.phone || 'N/A'}</div>
+                                        </td>
+                                        <td class="p-4">
+                                            ${isExpanded ? `
+                                                <span class="px-2 py-1 rounded bg-purple-100 text-purple-700 text-xs font-bold shadow-sm">
+                                                    <i class="fas fa-crown mr-1"></i> Không giới hạn
+                                                </span>
+                                            ` : `
+                                                <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-bold">
+                                                    <i class="fas fa-leaf mr-1 text-green-500"></i> Gói Free (Giới hạn KH)
+                                                </span>
+                                            `}
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-bold ${isLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                                                ${isLocked ? 'Đang Khóa' : 'Hoạt động'}
                                             </span>
-                                        ` : `
-                                            <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-bold">
-                                                <i class="fas fa-leaf mr-1 text-green-500"></i> Gói Free (Giới hạn ĐT)
-                                            </span>
-                                        `}
-                                    </td>
-                                    <td class="p-4">
-                                        <span class="px-2 py-1 rounded-full text-xs font-bold ${isLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
-                                            ${isLocked ? 'Đang Khóa' : 'Hoạt động'}
-                                        </span>
-                                    </td>
-                                    <td class="p-4 text-center space-x-1 whitespace-nowrap">
-                                        ${!isExpanded ? `
-                                            <button onclick="upgradeScale(${company.id})" 
-                                                class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded font-medium text-xs transition shadow" title="Mở rộng quy mô cung cấp suất ăn">
-                                                <i class="fas fa-arrow-up mr-1"></i>Mở rộng
-                                            </button>
-                                        ` : ''}
+                                        </td>
+                                        <td class="p-4 text-center space-x-1 whitespace-nowrap">
+                                            ${!isExpanded ? `
+                                                <button onclick="upgradeScale(${company.id})" 
+                                                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded font-medium text-xs transition shadow" title="Mở rộng quy mô cung cấp suất ăn">
+                                                    <i class="fas fa-arrow-up mr-1"></i>Mở rộng
+                                                </button>
+                                            ` : ''}
 
-                                        <button onclick="toggleLockCompany(${company.id}, ${isLocked ? 'true' : 'false'})" 
-                                            class="px-3 py-1 rounded text-white font-medium text-xs transition shadow ${isLocked ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-amber-500 hover:bg-amber-600'}">
-                                            <i class="fas ${isLocked ? 'fa-unlock' : 'fa-lock'} mr-1"></i>${isLocked ? 'Mở khóa' : 'Khóa'}
-                                        </button>
-                                        <button onclick="deleteCompany(${company.id})" 
-                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-medium text-xs transition shadow">
-                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
+                                            <button onclick="toggleLockCompany(${company.id}, ${isLocked ? 'true' : 'false'})" 
+                                                class="px-3 py-1 rounded text-white font-medium text-xs transition shadow ${isLocked ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-amber-500 hover:bg-amber-600'}">
+                                                <i class="fas ${isLocked ? 'fa-unlock' : 'fa-lock'} mr-1"></i>${isLocked ? 'Mở khóa' : 'Khóa'}
+                                            </button>
+                                            <button onclick="deleteCompany(${company.id})" 
+                                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-medium text-xs transition shadow">
+                                                <i class="fas fa-trash-alt mr-1"></i>Xóa
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
                     });
 
                     if (typeof paginator.render === 'function') {

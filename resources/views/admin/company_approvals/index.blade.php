@@ -77,12 +77,12 @@
 
                     if (!res.data || res.data.length === 0) {
                         tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-gray-500">
-                                    <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
-                                    Hiện không có yêu cầu đăng ký nào đang chờ duyệt.
-                                </td>
-                            </tr>`;
+                                    <tr>
+                                        <td colspan="5" class="p-8 text-center text-gray-500">
+                                            <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
+                                            Hiện không có yêu cầu đăng ký nào đang chờ duyệt.
+                                        </td>
+                                    </tr>`;
                         return;
                     }
 
@@ -100,26 +100,26 @@
                         }
 
                         tableBody.innerHTML += `
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="p-4 text-sm text-gray-500">${createdDate}</td>
-                                <td class="p-4 font-semibold text-gray-800">${company.company_name}</td>
-                                <td class="p-4 text-gray-600">${company.contact_person}</td>
-                                <td class="p-4 text-sm">
-                                    <div><i class="fas fa-envelope text-gray-400 mr-1"></i> ${company.email}</div>
-                                    <div><i class="fas fa-phone text-gray-400 mr-1"></i> ${company.phone}</div>
-                                </td>
-                                <td class="p-4 text-center space-x-2 whitespace-nowrap">
-                                    <button onclick="approveCompany(${company.id})"
-                                        class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition shadow">
-                                        <i class="fas fa-check"></i> Duyệt
-                                    </button>
-                                    <button onclick="rejectCompany(${company.id})"
-                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition shadow">
-                                        <i class="fas fa-times"></i> Từ chối
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="p-4 text-sm text-gray-500">${createdDate}</td>
+                                        <td class="p-4 font-semibold text-gray-800">${company.company_name}</td>
+                                        <td class="p-4 text-gray-600">${company.contact_person}</td>
+                                        <td class="p-4 text-sm">
+                                            <div><i class="fas fa-envelope text-gray-400 mr-1"></i> ${company.email}</div>
+                                            <div><i class="fas fa-phone text-gray-400 mr-1"></i> ${company.phone}</div>
+                                        </td>
+                                        <td class="p-4 text-center space-x-2 whitespace-nowrap">
+                                            <button onclick="approveCompany(${company.id})"
+                                                class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition shadow">
+                                                <i class="fas fa-check"></i> Duyệt
+                                            </button>
+                                            <button onclick="rejectCompany(${company.id})"
+                                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition shadow">
+                                                <i class="fas fa-times"></i> Từ chối
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
                     });
 
                     if (typeof paginator.render === 'function') {
@@ -155,7 +155,7 @@
                     .then(res => {
                         if (res.status === 'success' || res.success) {
                             alert(`DUYỆT THÀNH CÔNG!\n\nEmail đăng nhập: ${res.email}\nMật khẩu hệ thống cấp: ${res.password}\n\n(Lưu ý: Mật khẩu này sau này sẽ được hệ thống gửi thẳng vào Email của khách)`);
-                            loadPendingCompanies(paginator.currentPage, paginator.searchKeyword); // Cập nhật lại danh sách ngay lập tức tại trang hiện tại
+                            loadPendingCompanies(paginator.currentPage, paginator.searchKeyword);
                         } else {
                             alert('Lỗi: ' + res.message);
                         }
