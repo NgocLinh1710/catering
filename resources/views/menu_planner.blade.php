@@ -128,12 +128,38 @@
                                 </div>
                             </div>
                             <div class="bg-gray-50 rounded-2xl p-3 text-xs space-y-2 font-medium">
-                                <div class="flex justify-between"><span>Đạm (Protein):</span><span class="font-bold"><span
-                                            id="calc-protein">0g</span> / <span id="target-protein">0g</span></span></div>
-                                <div class="flex justify-between"><span>Béo (Fat):</span><span class="font-bold"><span
-                                            id="calc-fat">0g</span> / <span id="target-fat">0g</span></span></div>
-                                <div class="flex justify-between"><span>Xơ (Glucid):</span><span class="font-bold"><span
-                                            id="calc-fiber">0g</span> / <span id="target-fiber">0g</span></span></div>
+
+                                <div class="flex justify-between">
+                                    <span>Đạm (Protein):</span>
+                                    <span class="font-bold">
+                                        <span id="calc-protein">0g</span> /
+                                        <span id="target-protein">0g</span>
+                                    </span>
+                                </div>
+
+                                <div class="flex justify-between">
+                                    <span>Béo (Fat):</span>
+                                    <span class="font-bold">
+                                        <span id="calc-fat">0g</span> /
+                                        <span id="target-fat">0g</span>
+                                    </span>
+                                </div>
+
+                                <div class="flex justify-between">
+                                    <span>Đường bột (Glucid):</span>
+                                    <span class="font-bold">
+                                        <span id="calc-glucid">0g</span> /
+                                        <span id="target-glucid">0g</span>
+                                    </span>
+                                </div>
+
+                                <div class="flex justify-between">
+                                    <span>Xơ (Fiber):</span>
+                                    <span class="font-bold">
+                                        <span id="calc-fiber">0g</span> /
+                                        <span id="target-fiber">0g</span>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -223,6 +249,8 @@
             </div>
         </div>
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -236,35 +264,69 @@
 
         // Mảng lưu danh sách các phân nhóm dị ứng động 
         let allergyGroups = [];
-        let targetSpecs = { budget: 0, calories: 0, protein: 0, fat: 0, fiber: 0 };
+        let targetSpecs = {
+            budget: 0,
+            calories: 0,
+            protein: 0,
+            fat: 0,
+            glucid: 0,
+            fiber: 0
+        };
 
         document.addEventListener('DOMContentLoaded', async () => {
             const style = document.createElement('style');
             style.innerHTML = `
-                                .select2-results__options{
-                                    max-height:250px !important;
-                                    overflow-y:auto !important;
-                                }
-
-                                .select2-container{
-                                    width:100% !important;
-                                }
-
-                                .select2-container--default .select2-selection--single{
-                                    height:42px !important;
-                                    border:1px solid #e5e7eb !important;
-                                    border-radius:12px !important;
-                                }
-
-                                .select2-selection__rendered{
-                                    line-height:42px !important;
-                                }
-
-                                .select2-selection__arrow{
-                                    height:42px !important;
-                                }
-                            `;
+                                                        .select2-results__options{
+                                                            max-height:250px !important;
+                                                            overflow-y:auto !important;
+                                                        }
+                                                        .select2-container{
+                                                            width:100% !important;
+                                                        }
+                                                        .select2-container--default .select2-selection--single{
+                                                            height:42px !important;
+                                                            border:1px solid #e5e7eb !important;
+                                                            border-radius:12px !important;
+                                                        }
+                                                        .select2-selection__rendered{
+                                                            line-height:42px !important;
+                                                        }
+                                                        .select2-selection__arrow{
+                                                            height:42px !important;
+                                                        }
+                                                    `;
             document.head.appendChild(style);
+
+            window.getUiDescription = function () {
+                // Kiểm tra xem nhân viên truy cập theo Cách 1 (có tham số url) hay Cách 2 (chọn selectbox thủ công)
+                const urlParams = new URLSearchParams(window.location.search);
+                const hasUrlParams = urlParams.has('unit_id') && urlParams.has('audience_id');
+
+                // Kiểm tra xem đã có dữ liệu chọn khách hàng & đối tượng trên UI chưa (cho trường hợp chọn tay)
+                const customerSelected = document.getElementById('customer_id')?.value || document.querySelector('select[name="customer_id"]')?.value;
+                const audienceSelected = document.getElementById('audience_id')?.value || document.querySelector('select[name="audience_id"]')?.value;
+
+                const isFormReady = hasUrlParams || (customerSelected && audienceSelected);
+
+                if (isFormReady) {
+                    // Form cấu hình đã hiện (dù dùng cách 1 hay cách 2)
+                    return "Trang 'Lập thực đơn' (Giao diện cấu hình chọn món ĐÃ HIỆN HOÀN CHỈNH).\n" +
+                        "⚠️ QUY TẮC CỨNG: Hệ thống KHÔNG CÓ nút 'Tạo thực đơn' trung gian. Các chỉ số Kcal mục tiêu và Ngân sách mục tiêu được tự động lấy từ giao diện 'Thiết lập tiêu chuẩn' (Giao diện 2) và ĐỒNG BỘ HIỂN THỊ ra để xem chứ KHÔNG CHO PHÉP NHẬP TẠI ĐÂY.\n" +
+                        "Các khu vực chính trên giao diện:\n" +
+                        "1. Khung 'Giám sát tiêu chuẩn thực đơn': Hiển thị real-time các thông số so sánh: Chi phí/suất thực tế (ví dụ: 0 / 40.000đ), Calories/suất thực tế (ví dụ: 0.0 / 890 kcal), Đạm (Protein), Béo (Fat), Đường bột (Glucid), Xơ (Fiber). Số trước dấu gạch chéo là thực tế của món ăn đã chọn, số sau là mục tiêu cố định để kiểm duyệt.\n" +
+                        "2. Khung cấu hình suất ăn bên trái: Ô chọn 'Ngày áp dụng thực đơn', ô nhập Số lượng 'Suất thường', ô nhập 'Suất chay' và mục 'Thêm nhóm dị ứng' (nhập số lượng và từ khóa nhóm dị ứng, hệ thống tự động cộng dồn tính ra 'Tổng suất dị ứng').\n" +
+                        "3. Các tab chọn món ăn: Phân chia theo tab Suất thường, Suất chay, Suất dị ứng để bỏ món vào tương ứng.\n" +
+                        "💡 CÓ 2 CÁCH ĐỂ THÊM MÓN VÀO THỰC ĐƠN:\n" +
+                        "   - CÁCH 1 (ƯU TIÊN): BẤM NÚT MÀU TÍM '⚡ Tự động tối ưu'. Hệ thống sẽ tự dựa vào bảng tiêu chuẩn dinh dưỡng để bốc và điền thực đơn khớp hoàn hảo nhất. Nhân viên chỉ cần kiểm tra lại và chỉnh sửa tùy ý nếu muốn.\n" +
+                        "   - CÁCH 2 (THỦ CÔNG): Nhân viên tự chọn từng món ăn từ ô selectbox '-- Chọn món ăn đưa vào thực đơn --', điền số lượng rồi ấn nút 'Thêm' cho từng nhóm suất ăn.\n" +
+                        "➡️ THỨ TỰ HOÀN TẤT: Chọn ngày -> Nhập số lượng suất thường/chay/dị ứng -> Bấm nút '⚡ Tự động tối ưu' (hoặc chọn món thủ công rồi ấn Thêm) -> Kiểm tra khung 'Giám sát tiêu chuẩn thực đơn' xem các chỉ số thực tế đã khớp mục tiêu chưa -> Bấm nút màu xanh lá '💾 Lưu thực đơn ngày' để kết thúc quy trình.";
+                }
+
+                // Trang trống: Nhân viên ấn trực tiếp vào thanh menu 'Lập thực đơn' - Cách 2
+                return "Trang 'Lập thực đơn' TRỐNG. Giao diện đang ở trạng thái chờ chọn đối tượng.\n" +
+                    "Thành phần hiển thị: Chỉ có hộp 'Chọn Khách hàng & Nhóm đối tượng' chứa 2 ô selectbox trống. KHÔNG CÓ nút bấm xác nhận nào khác.\n" +
+                    "➡️ THỨ TỰ THỰC HIỆN BẮT BUỘC: Nhân viên phải chọn Khách hàng ở ô selectbox thứ nhất -> Chọn tiếp Nhóm đối tượng ở ô selectbox thứ hai. Ngay sau khi chọn xong ô thứ hai, giao diện cấu hình chọn món chi tiết và Khung giám sát tiêu chuẩn sẽ TỰ ĐỘNG HIỆN RA LUÔN mà không cần ấn thêm nút nào.";
+            };
 
             const token = localStorage.getItem('access_token');
             if (!token) {
@@ -340,23 +402,23 @@
             container.innerHTML = allergyGroups.map((g, i) => {
                 totalAllergy += (parseInt(g.servings) || 0);
                 return `
-                                                                                                                                                                                <div class="space-y-1 bg-white p-2 rounded-xl border border-red-100 shadow-sm relative">
-                                                                                                                                                                                    <input type="text" placeholder="Tên nhóm (VD: Khách dị ứng tôm)" value="${g.name}" 
-                                                                                                                                                                                        oninput="updateAllergyGroupValue(${i}, 'name', this.value)"
-                                                                                                                                                                                        class="w-full text-xs p-1.5 rounded border font-bold text-gray-700 outline-none">
-                                                                                                                                                                                    <div class="grid grid-cols-2 gap-2">
-                                                                                                                                                                                        <input type="number" placeholder="Số suất" value="${g.servings || ''}" 
-                                                                                                                                                                                            oninput="updateAllergyGroupValue(${i}, 'servings', this.value)"
-                                                                                                                                                                                            class="w-full text-xs p-1.5 rounded border text-center font-bold outline-none">
-                                                                                                                                                                                        <input type="text" placeholder="Từ khóa (VD: tôm)" value="${g.keyword}" 
-                                                                                                                                                                                            oninput="updateAllergyGroupValue(${i}, 'keyword', this.value)"
-                                                                                                                                                                                            class="w-full text-xs p-1.5 rounded border text-red-600 bg-red-50/50 font-black outline-none">
-                                                                                                                                                                                    </div>
-                                                                                                                                                                                    <button type="button" onclick="removeAllergyGroup(${i})" class="absolute top-1 right-2 text-red-400 hover:text-red-600 text-[10px]">
-                                                                                                                                                                                        <i class="fas fa-times"></i>
-                                                                                                                                                                                    </button>
-                                                                                                                                                                                </div>
-                                                                                                                                                                            `;
+                                                                                                                                                                                                                                    <div class="space-y-1 bg-white p-2 rounded-xl border border-red-100 shadow-sm relative">
+                                                                                                                                                                                                                                        <input type="text" placeholder="Tên nhóm (VD: Khách dị ứng tôm)" value="${g.name}" 
+                                                                                                                                                                                                                                            oninput="updateAllergyGroupValue(${i}, 'name', this.value)"
+                                                                                                                                                                                                                                            class="w-full text-xs p-1.5 rounded border font-bold text-gray-700 outline-none">
+                                                                                                                                                                                                                                        <div class="grid grid-cols-2 gap-2">
+                                                                                                                                                                                                                                            <input type="number" placeholder="Số suất" value="${g.servings || ''}" 
+                                                                                                                                                                                                                                                oninput="updateAllergyGroupValue(${i}, 'servings', this.value)"
+                                                                                                                                                                                                                                                class="w-full text-xs p-1.5 rounded border text-center font-bold outline-none">
+                                                                                                                                                                                                                                            <input type="text" placeholder="Từ khóa (VD: tôm)" value="${g.keyword}" 
+                                                                                                                                                                                                                                                oninput="updateAllergyGroupValue(${i}, 'keyword', this.value)"
+                                                                                                                                                                                                                                                class="w-full text-xs p-1.5 rounded border text-red-600 bg-red-50/50 font-black outline-none">
+                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                        <button type="button" onclick="removeAllergyGroup(${i})" class="absolute top-1 right-2 text-red-400 hover:text-red-600 text-[10px]">
+                                                                                                                                                                                                                                            <i class="fas fa-times"></i>
+                                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                `;
             }).join('');
 
             document.getElementById('allergy-servings').value = totalAllergy;
@@ -369,22 +431,22 @@
             let countVeg = chosenDishes.filter(d => d.meal_type === 'vegetarian').length;
 
             let tabsHtml = `
-                                                                                                                                                                            <button onclick="switchMealTab('normal')" id="tab-btn-normal" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                                                                                                                                                🟢 Suất Thường <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countNormal}</span>
-                                                                                                                                                                            </button>
-                                                                                                                                                                            <button onclick="switchMealTab('vegetarian')" id="tab-btn-vegetarian" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                                                                                                                                                🟡 Suất Chay <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countVeg}</span>
-                                                                                                                                                                            </button>
-                                                                                                                                                                        `;
+                                                                                                                                                                                                                                <button onclick="switchMealTab('normal')" id="tab-btn-normal" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                                                                                                                                    🟢 Suất Thường <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countNormal}</span>
+                                                                                                                                                                                                                                </button>
+                                                                                                                                                                                                                                <button onclick="switchMealTab('vegetarian')" id="tab-btn-vegetarian" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                                                                                                                                    🟡 Suất Chay <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">${countVeg}</span>
+                                                                                                                                                                                                                                </button>
+                                                                                                                                                                                                                            `;
 
             allergyGroups.forEach((g, i) => {
                 let countGroup = chosenDishes.filter(d => d.meal_type === `allergy_nhom_${i}`).length;
                 tabsHtml += `
-                                                                                                                                                                                <button onclick="switchMealTab('allergy_nhom_${i}')" id="tab-btn-allergy_nhom_${i}" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
-                                                                                                                                                                                    🔴 ${g.name || 'Nhóm dị ứng ' + (i + 1)} (${g.servings || 0}s) 
-                                                                                                                                                                                    <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">${countGroup}</span>
-                                                                                                                                                                                </button>
-                                                                                                                                                                            `;
+                                                                                                                                                                                                                                    <button onclick="switchMealTab('allergy_nhom_${i}')" id="tab-btn-allergy_nhom_${i}" class="py-3 px-4 text-sm font-bold border-b-2 focus:outline-none flex items-center gap-2">
+                                                                                                                                                                                                                                        🔴 ${g.name || 'Nhóm dị ứng ' + (i + 1)} (${g.servings || 0}s) 
+                                                                                                                                                                                                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold">${countGroup}</span>
+                                                                                                                                                                                                                                    </button>
+                                                                                                                                                                                                                                `;
             });
 
             wrapper.innerHTML = tabsHtml;
@@ -469,8 +531,8 @@
 
                     if (isBlocked) {
                         return `<option value="${d.id}" disabled style="color: #dc2626; background-color: #fef2f2; font-weight: bold;">
-                                                                                                                                                            ⚠️ [${blockedReason}] ${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)
-                                                                                                                                                        </option>`;
+                                                                                                                                                                                                                ⚠️ [${blockedReason}] ${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)
+                                                                                                                                                                                                            </option>`;
                     }
 
                     return `<option value="${d.id}">${d.name} (${Math.round(d.cost_per_serving).toLocaleString()}đ)</option>`;
@@ -506,13 +568,27 @@
 
                 allDishesPool = raw.map(d => {
                     const servings = parseFloat(d.servings || 1);
+
                     return {
                         ...d,
-                        cost_per_serving: parseFloat(d.estimated_cost || 0) / servings,
-                        calories_per_serving: parseFloat(d.total_calories || 0) / servings,
-                        protein_per_serving: parseFloat(d.total_protein || 0) / servings,
-                        fat_per_serving: parseFloat(d.lipid || 0) / servings,
-                        glucid_per_serving: parseFloat(d.glucid || 0) / servings
+
+                        cost_per_serving:
+                            parseFloat(d.estimated_cost || 0) / servings,
+
+                        calories_per_serving:
+                            parseFloat(d.total_calories || 0) / servings,
+
+                        protein_per_serving:
+                            parseFloat(d.total_protein || 0) / servings,
+
+                        fat_per_serving:
+                            parseFloat(d.lipid || 0) / servings,
+
+                        glucid_per_serving:
+                            parseFloat(d.glucid || 0) / servings,
+
+                        fiber_per_serving:
+                            parseFloat(d.fiber || 0) / servings
                     };
                 });
                 renderDishPool();
@@ -578,6 +654,7 @@
                     calories: parseFloat(audience.target_calories || 0),
                     protein: parseFloat(audience.target_protein || 0),
                     fat: parseFloat(audience.target_fat || 0),
+                    glucid: parseFloat(audience.target_glucid || 0),
                     fiber: parseFloat(audience.target_fiber || 0)
                 };
 
@@ -590,6 +667,7 @@
                 document.getElementById('target-protein').innerText = targetSpecs.protein + 'g';
                 document.getElementById('target-fat').innerText = targetSpecs.fat + 'g';
                 document.getElementById('target-fiber').innerText = targetSpecs.fiber + 'g';
+                document.getElementById('target-glucid').innerText = targetSpecs.glucid + "g";
 
                 renderAllergyGroupsAndTabs();
                 renderDishPool();
@@ -683,24 +761,24 @@
             }
 
             tbody.innerHTML = filteredDishes.map(d => `
-                                                                                                                                                                            <tr class="border-t hover:bg-gray-50 transition">
-                                                                                                                                                                                <td class="p-4">
-                                                                                                                                                                                    <div class="font-bold text-gray-800">${d.name}</div>
-                                                                                                                                                                                </td>
-                                                                                                                                                                                <td class="p-4 text-center">
-                                                                                                                                                                                    <input type="number" min="1" value="${d.quantity || 1}"
-                                                                                                                                                                                        onchange="updateDishQuantity(${d.id}, this.value)"
-                                                                                                                                                                                        class="w-20 text-center border border-gray-200 rounded-xl px-2 py-1">
-                                                                                                                                                                                </td>
-                                                                                                                                                                                <td class="p-4 text-center">${(navigator_calories(d) * Number(d.quantity || 1)).toFixed(1)}</td>
-                                                                                                                                                                                <td class="p-4 text-right font-black">${Math.round((d.cost_per_serving || 0) * (d.quantity || 1)).toLocaleString()}đ</td>
-                                                                                                                                                                                <td class="p-4 text-center">
-                                                                                                                                                                                    <button onclick="removeDish(${d.id})" class="text-red-500 hover:text-red-700 transition">
-                                                                                                                                                                                        <i class="fas fa-trash-alt"></i>
-                                                                                                                                                                                    </button>
-                                                                                                                                                                                </td>
-                                                                                                                                                                            </tr>
-                                                                                                                                                                        `).join('');
+                                                                                                                                                                                                                                <tr class="border-t hover:bg-gray-50 transition">
+                                                                                                                                                                                                                                    <td class="p-4">
+                                                                                                                                                                                                                                        <div class="font-bold text-gray-800">${d.name}</div>
+                                                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                                                    <td class="p-4 text-center">
+                                                                                                                                                                                                                                        <input type="number" min="1" value="${d.quantity || 1}"
+                                                                                                                                                                                                                                            onchange="updateDishQuantity(${d.id}, this.value)"
+                                                                                                                                                                                                                                            class="w-20 text-center border border-gray-200 rounded-xl px-2 py-1">
+                                                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                                                    <td class="p-4 text-center">${(navigator_calories(d) * Number(d.quantity || 1)).toFixed(1)}</td>
+                                                                                                                                                                                                                                    <td class="p-4 text-right font-black">${Math.round((d.cost_per_serving || 0) * (d.quantity || 1)).toLocaleString()}đ</td>
+                                                                                                                                                                                                                                    <td class="p-4 text-center">
+                                                                                                                                                                                                                                        <button onclick="removeDish(${d.id})" class="text-red-500 hover:text-red-700 transition">
+                                                                                                                                                                                                                                            <i class="fas fa-trash-alt"></i>
+                                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                                                </tr>
+                                                                                                                                                                                                                            `).join('');
         }
 
         function navigator_calories(d) {
@@ -709,7 +787,7 @@
 
         function reCalculateNutrition() {
             const filteredDishes = chosenDishes.filter(d => d.meal_type === currentActiveTab);
-            let totalCost = 0; let totalCalories = 0; let totalProtein = 0; let totalFat = 0; let totalFiber = 0;
+            let totalCost = 0; let totalCalories = 0; let totalProtein = 0; let totalFat = 0; let totalGlucid = 0; let totalFiber = 0;
 
             filteredDishes.forEach(d => {
                 const quantity = Number(d.quantity || 1);
@@ -717,14 +795,16 @@
                 totalCalories += navigator_calories(d) * quantity;
                 totalProtein += parseFloat(d.protein_per_serving || d.total_protein || 0) * quantity;
                 totalFat += parseFloat(d.fat_per_serving || d.lipid || 0) * quantity;
-                totalFiber += parseFloat(d.glucid_per_serving || d.glucid || 0) * quantity;
+                totalGlucid += parseFloat(d.glucid_per_serving || d.glucid || 0) * quantity;
+                totalFiber += parseFloat(d.fiber_per_serving || d.fiber || 0) * quantity;
             });
 
             document.getElementById('calc-current-cost').innerText = Math.round(totalCost).toLocaleString();
             document.getElementById('calc-current-calories').innerText = totalCalories.toFixed(1);
-            document.getElementById('calc-protein').innerText = totalProtein.toFixed(1) + 'g';
-            document.getElementById('calc-fat').innerText = totalFat.toFixed(1) + 'g';
-            document.getElementById('calc-fiber').innerText = totalFiber.toFixed(1) + 'g';
+            document.getElementById('calc-protein').innerText = totalProtein.toFixed(1) + "g";
+            document.getElementById('calc-fat').innerText = totalFat.toFixed(1) + "g";
+            document.getElementById('calc-glucid').innerText = totalGlucid.toFixed(1) + "g";
+            document.getElementById('calc-fiber').innerText = totalFiber.toFixed(1) + "g";
 
             updateProgressBar('bar-budget', totalCost, targetSpecs.budget);
             updateProgressBar('bar-calories', totalCalories, targetSpecs.calories);
@@ -834,9 +914,9 @@
                 try {
                     // Hiển thị trạng thái chờ 
                     document.getElementById('selected-dish-tbody').innerHTML = `
-                                                                                                                                            <tr><td colspan="5" class="p-10 text-center text-indigo-600 font-bold">
-                                                                                                                                                <i class="fas fa-spinner fa-spin mr-2"></i> Đang tính toán...
-                                                                                                                                            </td></tr>`;
+                                                                                                                                                                                                <tr><td colspan="5" class="p-10 text-center text-indigo-600 font-bold">
+                                                                                                                                                                                                    <i class="fas fa-spinner fa-spin mr-2"></i> Đang tính toán...
+                                                                                                                                                                                                </td></tr>`;
 
                     const res = await fetch('/api/daily-menus/auto-generate', {
                         method: 'POST',

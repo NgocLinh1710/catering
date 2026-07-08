@@ -162,6 +162,8 @@
             </form>
         </div>
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -172,6 +174,14 @@
             containerId: 'pagination',
             loadFunction: loadData
         });
+
+        window.getUiDescription = () =>
+            "Giao diện: 'Quản lý Nguyên liệu' của Doanh nghiệp.\n" +
+            "1. Bộ lọc: Ô 'Tìm kiếm' dùng để lọc tìm nguyên liệu nhanh theo tên thực phẩm.\n" +
+            "2. Nút 'Thêm Thực Phẩm': Bấm vào mở Form nhập các chỉ số (tính trên 1kg thực phẩm) gồm: Tên thực phẩm, Tags Cảnh báo (Dị ứng/Tôn giáo), Calories (Kcal), Protein (g), Lipid/Béo (g), Glucid/Bột (g), Chất xơ (g), Giá nhập (VNĐ/kg).\n" +
+            "3. Nút cập nhật giá biến động (Hình đồng hồ): Dùng khi giá thị trường thay đổi. Form gồm: Ô Nguyên liệu (⚠️ BỊ LÀM MỜ - DISABLED, không cho sửa vì hệ thống tự khóa theo món đang chọn), ô Giá mới (VNĐ/kg), và ô Ngày áp dụng.\n" +
+            "4. Các nút thao tác khác: Nút hình cây bút (Chỉnh sửa toàn bộ thông tin) và Nút hình thùng rác (Xóa nguyên liệu khỏi kho).\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Thêm thực phẩm vào kho và điền đầy đủ các chỉ số dinh dưỡng/tag cảnh báo -> Khi giá cả thị trường thay đổi, chọn món và ấn nút hình đồng hồ để cập nhật giá biến động theo ngày áp dụng.";
 
         async function loadData(page = 1, search = '') {
             paginator.currentPage = page;
@@ -202,36 +212,36 @@
                         : '';
 
                     return `
-                                                <tr class="border-b hover:bg-gray-50 transition group text-sm">
-                                                    <td class="p-4">
-                                                        <div class="flex flex-col">
-                                                            <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
-                                                            <div class="mt-1">${tagHtml}</div>
-                                                            <span class="text-[10px] text-gray-400 font-normal italic mt-1">
-                                                                Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
-                                                    <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
-                                                    <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
-                                                    <td class="p-4 text-center">
-                                                        <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
-                                                            class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
-                                                            <i class="fas fa-history"></i>
-                                                        </button>
-                                                    </td>
-                                                    <td class="p-4 text-center">
-                                                        <div class="flex justify-center space-x-2">
-                                                            <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
-                                                                <i class="fas fa-edit"></i>
-                                                            </button>
-                                                            <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>`;
+                                                        <tr class="border-b hover:bg-gray-50 transition group text-sm">
+                                                            <td class="p-4">
+                                                                <div class="flex flex-col">
+                                                                    <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
+                                                                    <div class="mt-1">${tagHtml}</div>
+                                                                    <span class="text-[10px] text-gray-400 font-normal italic mt-1">
+                                                                        Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
+                                                            <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
+                                                            <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
+                                                            <td class="p-4 text-center">
+                                                                <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
+                                                                    class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
+                                                                    <i class="fas fa-history"></i>
+                                                                </button>
+                                                            </td>
+                                                            <td class="p-4 text-center">
+                                                                <div class="flex justify-center space-x-2">
+                                                                    <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </button>
+                                                                    <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
+                                                                        <i class="fas fa-trash-alt"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>`;
                 }).join('');
 
                 paginator.render(result.last_page, result.current_page);

@@ -41,6 +41,7 @@ class TargetAudienceController extends Controller
             'target_protein' => 'numeric|min:0',
             'target_fat' => 'numeric|min:0',
             'target_fiber' => 'numeric|min:0',
+            'target_glucid' => 'required|numeric|min:0',
             'budget_per_serving' => 'numeric|min:0',
             'required_foods' => 'nullable|string',
             'restrictions' => 'nullable|array',
@@ -105,6 +106,7 @@ class TargetAudienceController extends Controller
             'target_protein' => 'numeric',
             'target_fat' => 'numeric',
             'target_fiber' => 'numeric',
+            'target_glucid' => 'required|numeric|min:0',
             'budget_per_serving' => 'numeric',
             'required_foods' => 'nullable|string'
         ]);

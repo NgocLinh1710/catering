@@ -209,6 +209,7 @@ class DailyMenuController extends Controller
                 'calories' => (float) ($audience->target_calories ?? 0),
                 'protein' => (float) ($audience->target_protein ?? 0),
                 'fat' => (float) ($audience->target_fat ?? 0),
+                'glucid' => (float) ($audience->target_glucid ?? 0),
                 'fiber' => (float) ($audience->target_fiber ?? 0),
             ],
             'forbidden_keywords' => $request->forbidden_keywords ?? [],
@@ -280,7 +281,6 @@ class DailyMenuController extends Controller
     public function getDashboardStats(Request $request)
     {
         try {
-            // Hỗ trợ linh hoạt cả Web Session và API Token
             $currentUser = auth('sanctum')->user() ?? auth('web')->user() ?? auth()->user();
 
             if (!$currentUser) {

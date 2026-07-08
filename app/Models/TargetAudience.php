@@ -14,6 +14,7 @@ class TargetAudience extends Model
         'target_calories',
         'target_protein',
         'target_fat',
+        'target_glucid',
         'target_fiber',
         'budget_per_serving',
         'required_foods'

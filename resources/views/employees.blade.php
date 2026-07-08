@@ -67,6 +67,8 @@
             </form>
         </div>
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -77,6 +79,16 @@
             containerId: 'pagination',
             loadFunction: loadEmployees
         });
+
+        window.getUiDescription = () =>
+            "Giao diện: 'Quản lý Nhân sự' của Doanh nghiệp.\n" +
+            "1. Bộ lọc: Ô 'Tìm kiếm' để tìm nhanh nhân viên theo Tên hoặc theo Email đăng nhập.\n" +
+            "2. Nút 'Thêm Nhân Viên': Bấm vào mở Form gồm: Họ và tên, Email đăng nhập, và Mật khẩu (⚠️ Điều kiện: Mật khẩu bắt buộc phải từ 6 ký tự trở lên, chứa cả chữ và số).\n" +
+            "3. Các nút thao tác trên từng nhân viên:\n" +
+            "   - Nút hình cây bút (Chỉnh sửa): Sửa thông tin nhân viên (gồm các ô nhập tương tự form thêm mới).\n" +
+            "   - Nút hình cái khóa (Khóa/Mở tài khoản): Khi bấm Khóa, nhân viên đó lập tức không thể đăng nhập vào hệ thống.\n" +
+            "   - Nút hình thùng rác (Xóa): Xóa nhân viên. HỆ QUẢ: Xóa toàn bộ các món ăn do nhân viên đó tạo ra. Tuy nhiên, số liệu Chi tiêu và Thiết lập tiêu chuẩn của khách hàng mà nhân viên đó từng phụ trách VẪN ĐƯỢC GIỮ LẠI.\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Thêm nhân viên mới (nhập đúng định dạng mật khẩu) -> Giao việc bên trang Khách hàng -> Quản lý trạng thái bằng nút Khóa hoặc Xóa nếu nhân sự nghỉ việc.";
 
         function loadEmployees(page = 1, search = '') {
             paginator.currentPage = page;
@@ -101,22 +113,22 @@
                         const lockTitle = emp.status === 'inactive' ? 'Mở khóa' : 'Khóa tài khoản';
 
                         tableBody.innerHTML += `
-                                                                                                                                    <tr class="border-b hover:bg-gray-50 ${emp.status === 'inactive' ? 'bg-gray-50' : ''}">
-                                                                                                                                        <td class="p-4 font-semibold ${emp.status === 'inactive' ? 'text-gray-400' : 'text-gray-800'}">${emp.name}</td>
-                                                                                                                                        <td class="p-4 text-gray-600">${emp.email}</td>
-                                                                                                                                        <td class="p-4 text-center">${statusBadge}</td>
-                                                                                                                                        <td class="p-4 text-center">
-                                                                                                                                            <button onclick="openModal(${emp.id}, '${emp.name}', '${emp.email}')" class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
-                                                                                                                                                <i class="fas fa-edit"></i>
-                                                                                                                                            </button>
-                                                                                                                                            <button onclick="toggleEmployeeStatus(${emp.id}, '${emp.status}')" class="hover:opacity-70 transition mr-3" title="${lockTitle}">
-                                                                                                                                                <i class="fas ${lockIcon}"></i>
-                                                                                                                                            </button>
-                                                                                                                                            <button onclick="deletePermanent(${emp.id})" class="text-red-500 hover:text-red-700" title="Xóa vĩnh viễn">
-                                                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                                                            </button>
-                                                                                                                                        </td>
-                                                                                                                                    </tr>`;
+                                                                                                                                            <tr class="border-b hover:bg-gray-50 ${emp.status === 'inactive' ? 'bg-gray-50' : ''}">
+                                                                                                                                                <td class="p-4 font-semibold ${emp.status === 'inactive' ? 'text-gray-400' : 'text-gray-800'}">${emp.name}</td>
+                                                                                                                                                <td class="p-4 text-gray-600">${emp.email}</td>
+                                                                                                                                                <td class="p-4 text-center">${statusBadge}</td>
+                                                                                                                                                <td class="p-4 text-center">
+                                                                                                                                                    <button onclick="openModal(${emp.id}, '${emp.name}', '${emp.email}')" class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
+                                                                                                                                                        <i class="fas fa-edit"></i>
+                                                                                                                                                    </button>
+                                                                                                                                                    <button onclick="toggleEmployeeStatus(${emp.id}, '${emp.status}')" class="hover:opacity-70 transition mr-3" title="${lockTitle}">
+                                                                                                                                                        <i class="fas ${lockIcon}"></i>
+                                                                                                                                                    </button>
+                                                                                                                                                    <button onclick="deletePermanent(${emp.id})" class="text-red-500 hover:text-red-700" title="Xóa vĩnh viễn">
+                                                                                                                                                        <i class="fas fa-trash"></i>
+                                                                                                                                                    </button>
+                                                                                                                                                </td>
+                                                                                                                                            </tr>`;
                     });
 
                     document.getElementById('totalItems').innerText = res.total;

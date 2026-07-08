@@ -18,6 +18,7 @@ class Dish extends Model
         'total_protein',
         'lipid',
         'glucid',
+        'fiber',
         'dish_tags',
         'estimated_cost',
         'servings'
@@ -30,14 +31,13 @@ class Dish extends Model
         'protein_per_serving',
         'fat_per_serving',
         'glucid_per_serving',
+        'fiber_per_serving',
     ];
     protected $casts = [
         'dish_tags' => 'array',
     ];
 
-    /**
-     * Quan hệ n-n với bảng ingredients
-     */
+    // Quan hệ n-n với bảng ingredients
     public function ingredients()
     {
         return $this->belongsToMany(Ingredient::class, 'dish_ingredients')
@@ -45,10 +45,10 @@ class Dish extends Model
             ->withTimestamps();
     }
 
-    /**
-     * TỰ ĐỘNG GOM TAGS DỊ ỨNG
-     * Hàm này sẽ quét tất cả nguyên liệu trong món và trả về danh sách tag không trùng lặp.
-     * Ví dụ: Món có Tôm (tag: Hải sản) và Đậu phụ (tag: Chay) -> Món sẽ có tags: ['Hải sản', 'Chay']
+    /*
+     TỰ ĐỘNG GOM TAGS DỊ ỨNG
+     Hàm này sẽ quét tất cả nguyên liệu trong món và trả về danh sách tag không trùng lặp.
+     Ví dụ: Món có Tôm (tag: Hải sản) và Đậu phụ (tag: Chay) -> Món sẽ có tags: ['Hải sản', 'Chay']
      */
     public function getAllergyTagsAttribute()
     {
@@ -104,11 +104,19 @@ class Dish extends Model
         return round($this->glucid / $this->servings, 1);
     }
 
-    /**
-     * TÍNH GIÁ MÓN ĂN THEO THỜI ĐIỂM
-     * @param string|null $date (Định dạng Y-m-d)
-     * Hàm này cực kỳ quan trọng để lập kế hoạch tài chính.
-     */
+    public function getFiberPerServingAttribute()
+    {
+        if (($this->servings ?? 1) <= 0) {
+            return 0;
+        }
+
+        return round($this->fiber / $this->servings, 1);
+    }
+
+    /*
+     TÍNH GIÁ MÓN ĂN THEO THỜI ĐIỂM
+     @param string|null $date (Định dạng Y-m-d)
+    */
     public function calculateCostAtDate($date = null)
     {
         $date = $date ?: now()->format('Y-m-d');
@@ -138,6 +146,7 @@ class Dish extends Model
         $protein = 0;
         $lipid = 0;
         $glucid = 0;
+        $fiber = 0;
 
         $this->load('ingredients');
 
@@ -148,6 +157,7 @@ class Dish extends Model
             $protein += ($ingredient->protein * $weightInKg);
             $lipid += ($ingredient->lipid * $weightInKg);
             $glucid += ($ingredient->glucid * $weightInKg);
+            $fiber += ($ingredient->fiber * $weightInKg);
         }
 
         $this->update([
@@ -156,6 +166,7 @@ class Dish extends Model
             'estimated_cost' => $this->calculateCostAtDate(),
             'lipid' => $lipid,
             'glucid' => $glucid,
+            'fiber' => $fiber,
         ]);
     }
 

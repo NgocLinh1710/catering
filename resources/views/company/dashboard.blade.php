@@ -98,8 +98,9 @@
                 </table>
             </div>
         </div>
-
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -107,6 +108,13 @@
         document.addEventListener("DOMContentLoaded", function () {
             loadDashboardData();
         });
+
+        window.getUiDescription = () =>
+            "Giao diện: 'Tổng quan Doanh nghiệp' (Dashboard số liệu).\n" +
+            "1. Khung số liệu thống kê: Hiển thị 3 chỉ số dạng số gồm: Số khách hàng đang hợp tác, Số nhân viên đang hoạt động, và Số nguyên liệu đã được thêm vào kho.\n" +
+            "2. Biểu đồ hiển thị: Biểu đồ tròn thể hiện tổng số lượng từng suất ăn (Suất thường, Suất chay, Suất dị ứng) cộng dồn của TẤT CẢ các khách hàng.\n" +
+            "3. Danh sách khách hàng: Bảng hiển thị thông tin các khách hàng kèm theo Nút 'Điều hướng quản lý' (Bấm vào nút này sẽ lập tức chuyển trang đến giao diện Quản lý Khách hàng).\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Giao diện này chủ yếu để theo dõi trực quan số liệu và bấm nút 'Điều hướng quản lý' để đi thẳng đến trang quản lý khách hàng chi tiết.";
 
         async function loadDashboardData() {
             try {
@@ -142,12 +150,12 @@
 
                 if (!data.clients || data.clients.length === 0) {
                     tableBody.innerHTML = `
-                                                <tr>
-                                                    <td colspan="3" class="p-8 text-center text-gray-400 font-bold">
-                                                        <i class="fas fa-folder-open text-xl mb-2 block text-gray-200"></i>
-                                                        Chưa có dữ liệu đơn vị khách hàng nào trong hệ thống.
-                                                    </td>
-                                                </tr>`;
+                                                        <tr>
+                                                            <td colspan="3" class="p-8 text-center text-gray-400 font-bold">
+                                                                <i class="fas fa-folder-open text-xl mb-2 block text-gray-200"></i>
+                                                                Chưa có dữ liệu đơn vị khách hàng nào trong hệ thống.
+                                                            </td>
+                                                        </tr>`;
                 } else {
                     data.clients.forEach(client => {
                         const isAction = client.status == 1 || client.status == 'active';
@@ -156,12 +164,12 @@
                             : `<span class="bg-gray-50 text-gray-400 px-2.5 py-1 rounded-lg text-[10px] font-black border border-gray-100">Tạm ngưng hợp tác</span>`;
 
                         tableBody.innerHTML += `
-                                                    <tr class="hover:bg-gray-50/50 transition">
-                                                        <td class="p-4 font-bold text-gray-800">${client.name}</td>
-                                                        <td class="p-4 text-gray-500">${client.address || 'Chưa cập nhật'}</td>
-                                                        <td class="p-4 text-center">${statusBadge}</td>
-                                                    </tr>
-                                                `;
+                                                            <tr class="hover:bg-gray-50/50 transition">
+                                                                <td class="p-4 font-bold text-gray-800">${client.name}</td>
+                                                                <td class="p-4 text-gray-500">${client.address || 'Chưa cập nhật'}</td>
+                                                                <td class="p-4 text-center">${statusBadge}</td>
+                                                            </tr>
+                                                        `;
                     });
                 }
 

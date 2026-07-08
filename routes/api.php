@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\DailyMenuController;
 use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Admin\CompanyApprovalController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Api\AiChatController;
 
 // PUBLIC ROUTES (Không cần đăng nhập)
 
@@ -77,4 +78,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/company-update-requests', [AdminController::class, 'getUpdateRequests']);
         Route::post('/company-update-requests/{id}/{action}', [AdminController::class, 'handleUpdateRequest']);
     });
+
+    Route::post('/ai/chat', [AiChatController::class, 'chat']);
 });

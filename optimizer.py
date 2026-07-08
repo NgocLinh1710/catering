@@ -26,6 +26,7 @@ def solve_optimization(data):
         calories_target = float(target.get("calories", 0))
         protein_target = float(target.get("protein", 0))
         fat_target = float(target.get("fat", 0))
+        glucid_target = float(target.get("glucid", 0))
         fiber_target = float(target.get("fiber", 0))
 
         valid_dishes = []
@@ -106,11 +107,19 @@ def solve_optimization(data):
                 for d in valid_dishes
             ) >= fat_target
 
+        # Glucid
+        if glucid_target > 0:
+            prob += lpSum(
+                dish_vars[d["id"]] *
+                float(d.get("glucid_per_serving", 0))
+                for d in valid_dishes
+            ) >= glucid_target
+
         # Fiber
         if fiber_target > 0:
             prob += lpSum(
                 dish_vars[d["id"]] *
-                float(d.get("glucid_per_serving", 0))
+                float(d.get("fiber_per_serving", 0))
                 for d in valid_dishes
             ) >= fiber_target
 

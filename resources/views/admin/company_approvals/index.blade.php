@@ -43,6 +43,8 @@
             </div>
         </div>
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -50,6 +52,14 @@
 
     <script>
         const apiToken = localStorage.getItem('access_token') || '';
+
+        window.getUiDescription = () =>
+            "Giao diện: 'Duyệt doanh nghiệp đăng ký'.\n" +
+            "1. Các thành phần hiển thị: Danh sách các doanh nghiệp mới nộp đơn đăng ký sử dụng hệ thống.\n" +
+            "2. Các nút chức năng trên từng yêu cầu đăng ký:\n" +
+            "   - Nút 'Duyệt': Chấp nhận doanh nghiệp vào hệ thống. Hành động này sẽ kích hoạt hệ thống tự động sinh mật khẩu ngẫu nhiên cho doanh nghiệp đó.\n" +
+            "   - Nút 'Từ chối': Từ chối yêu cầu đăng ký hiện tại. Doanh nghiệp bị từ chối vẫn giữ quyền đăng ký lại từ đầu nếu cần.\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Admin kiểm tra thông tin đơn đăng ký -> Bấm 'Duyệt' để cấp tài khoản tự động hoặc bấm 'Từ chối' để bác bỏ đơn.";
 
         const paginator = typeof PaginationManager === 'function'
             ? PaginationManager({ containerId: 'approvalPagination', loadFunction: loadPendingCompanies })
@@ -77,12 +87,12 @@
 
                     if (!res.data || res.data.length === 0) {
                         tableBody.innerHTML = `
-                                    <tr>
-                                        <td colspan="5" class="p-8 text-center text-gray-500">
-                                            <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
-                                            Hiện không có yêu cầu đăng ký nào đang chờ duyệt.
-                                        </td>
-                                    </tr>`;
+                                            <tr>
+                                                <td colspan="5" class="p-8 text-center text-gray-500">
+                                                    <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
+                                                    Hiện không có yêu cầu đăng ký nào đang chờ duyệt.
+                                                </td>
+                                            </tr>`;
                         return;
                     }
 
@@ -100,26 +110,26 @@
                         }
 
                         tableBody.innerHTML += `
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="p-4 text-sm text-gray-500">${createdDate}</td>
-                                        <td class="p-4 font-semibold text-gray-800">${company.company_name}</td>
-                                        <td class="p-4 text-gray-600">${company.contact_person}</td>
-                                        <td class="p-4 text-sm">
-                                            <div><i class="fas fa-envelope text-gray-400 mr-1"></i> ${company.email}</div>
-                                            <div><i class="fas fa-phone text-gray-400 mr-1"></i> ${company.phone}</div>
-                                        </td>
-                                        <td class="p-4 text-center space-x-2 whitespace-nowrap">
-                                            <button onclick="approveCompany(${company.id})"
-                                                class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition shadow">
-                                                <i class="fas fa-check"></i> Duyệt
-                                            </button>
-                                            <button onclick="rejectCompany(${company.id})"
-                                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition shadow">
-                                                <i class="fas fa-times"></i> Từ chối
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
+                                            <tr class="border-b hover:bg-gray-50">
+                                                <td class="p-4 text-sm text-gray-500">${createdDate}</td>
+                                                <td class="p-4 font-semibold text-gray-800">${company.company_name}</td>
+                                                <td class="p-4 text-gray-600">${company.contact_person}</td>
+                                                <td class="p-4 text-sm">
+                                                    <div><i class="fas fa-envelope text-gray-400 mr-1"></i> ${company.email}</div>
+                                                    <div><i class="fas fa-phone text-gray-400 mr-1"></i> ${company.phone}</div>
+                                                </td>
+                                                <td class="p-4 text-center space-x-2 whitespace-nowrap">
+                                                    <button onclick="approveCompany(${company.id})"
+                                                        class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition shadow">
+                                                        <i class="fas fa-check"></i> Duyệt
+                                                    </button>
+                                                    <button onclick="rejectCompany(${company.id})"
+                                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition shadow">
+                                                        <i class="fas fa-times"></i> Từ chối
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `;
                     });
 
                     if (typeof paginator.render === 'function') {

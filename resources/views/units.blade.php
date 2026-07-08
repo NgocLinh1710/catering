@@ -101,6 +101,8 @@
             </div>
         </div>
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -110,6 +112,17 @@
         let currentUnitId = null;
         let editingUnitId = null;
         let isYearRendered = false;
+
+        window.getUiDescription = () =>
+            "Giao diện: 'Quản lý Khách hàng' của Doanh nghiệp.\n" +
+            "1. Các bộ lọc & Tìm kiếm: Ô tìm kiếm thông tin khách hàng theo Tên. Bộ lọc xem Tổng chi tiêu của khách hàng theo Năm hoặc theo Từng tháng của từng năm.\n" +
+            "2. Danh sách khách hàng: Hiển thị tất cả khách hàng (kể cả những đơn vị đã ngừng hợp tác).\n" +
+            "3. Các nút trên từng dòng khách hàng:\n" +
+            "   - Nút hình cây bút (Chỉnh sửa): Mở form chỉnh sửa thông tin (giống form thêm mới).\n" +
+            "   - Nút hình biển báo cấm (Ngừng hợp tác): Tạm dừng hợp tác với khách hàng này.\n" +
+            "   - Nút hình cái khóa (Mở lại hợp tác): Chỉ xuất hiện khi khách hàng đang ở trạng thái ngừng hợp tác, bấm vào để khôi phục.\n" +
+            "4. Nút 'Thêm Khách Hàng Mới': Bấm vào hiện Form gồm các ô: Tên đơn vị/Khách hàng, Địa chỉ, và Ô selectbox giao việc cho Nhân viên thuộc doanh nghiệp phụ trách.\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Muốn thêm mới thì bấm 'Thêm Khách Hàng Mới' -> Điền thông tin và chọn nhân viên chưa bị khóa -> Bấm lưu. Muốn tìm kiếm/lọc chi tiêu thì dùng ô tìm kiếm và bộ lọc thời gian ở phía trên.";
 
         const paginator = typeof PaginationManager === 'function'
             ? PaginationManager({ containerId: 'pagination', loadFunction: loadUnits })
@@ -155,34 +168,34 @@
                             const assignedEmployeeIds = employeesList.map(e => e.id);
 
                             tbody.innerHTML += `
-                                                <tr class="border-b hover:bg-gray-50 ${isInactive ? 'bg-gray-100' : ''}">
-                                                    <td class="p-4 font-semibold ${isInactive ? 'text-gray-400' : 'text-gray-800'}">
-                                                        ${unit.name} ${isInactive ? '<span class="text-xs font-normal text-red-500">(Ngừng hợp tác)</span>' : ''}
-                                                    </td>
-                                                    <td class="p-4 ${isInactive ? 'text-gray-400' : 'text-gray-600'}">${unit.address || 'N/A'}</td>
-                                                    <td class="p-4 text-center font-bold ${isInactive ? 'text-gray-400' : 'text-blue-600'}">
-                                                        ${Number(dynamicConsumption).toLocaleString()}đ
-                                                    </td>
-                                                    <td class="p-4">
-                                                        ${employeesList.map(e => `
-                                                            <span class="${isInactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'} px-2 py-1 rounded text-xs mr-1">
-                                                                ${e.name}
-                                                            </span>`).join('')}
-                                                    </td>
-                                                    <td class="p-4 text-center">
-                                                        <button onclick="openUnitModal(${unit.id}, '${unit.name}', '${unit.address || ''}', ${JSON.stringify(assignedEmployeeIds)})" 
-                                                                class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
+                                                            <tr class="border-b hover:bg-gray-50 ${isInactive ? 'bg-gray-100' : ''}">
+                                                                <td class="p-4 font-semibold ${isInactive ? 'text-gray-400' : 'text-gray-800'}">
+                                                                    ${unit.name} ${isInactive ? '<span class="text-xs font-normal text-red-500">(Ngừng hợp tác)</span>' : ''}
+                                                                </td>
+                                                                <td class="p-4 ${isInactive ? 'text-gray-400' : 'text-gray-600'}">${unit.address || 'N/A'}</td>
+                                                                <td class="p-4 text-center font-bold ${isInactive ? 'text-gray-400' : 'text-blue-600'}">
+                                                                    ${Number(dynamicConsumption).toLocaleString()}đ
+                                                                </td>
+                                                                <td class="p-4">
+                                                                    ${employeesList.map(e => `
+                                                                        <span class="${isInactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'} px-2 py-1 rounded text-xs mr-1">
+                                                                            ${e.name}
+                                                                        </span>`).join('')}
+                                                                </td>
+                                                                <td class="p-4 text-center">
+                                                                    <button onclick="openUnitModal(${unit.id}, '${unit.name}', '${unit.address || ''}', ${JSON.stringify(assignedEmployeeIds)})" 
+                                                                            class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </button>
 
-                                                        <button onclick="toggleUnitStatus(${unit.id}, '${unit.status}')" 
-                                                                class="${isInactive ? 'text-green-500' : 'text-orange-500'} hover:opacity-70 transition" 
-                                                                title="${isInactive ? 'Kích hoạt lại' : 'Ngừng hợp tác'}">
-                                                            <i class="fas ${isInactive ? 'fa-unlock' : 'fa-ban'}"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            `;
+                                                                    <button onclick="toggleUnitStatus(${unit.id}, '${unit.status}')" 
+                                                                            class="${isInactive ? 'text-green-500' : 'text-orange-500'} hover:opacity-70 transition" 
+                                                                            title="${isInactive ? 'Kích hoạt lại' : 'Ngừng hợp tác'}">
+                                                                        <i class="fas ${isInactive ? 'fa-unlock' : 'fa-ban'}"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        `;
                         });
                     }
 
@@ -217,16 +230,16 @@
                         const canSelect = !isInactive || isAssigned;
 
                         return `
-                                            <label class="flex items-center p-1 hover:bg-gray-50 cursor-pointer text-sm ${isInactive ? 'text-red-400' : ''}">
-                                                <input type="checkbox" name="modal_emp_ids" value="${emp.id}" 
-                                                    ${isAssigned ? 'checked' : ''} 
-                                                    ${!canSelect ? 'disabled' : ''} 
-                                                    class="mr-2 h-4 w-4">
-                                                <span>
-                                                    ${emp.name} ${isInactive ? '<b class="text-xs">(Tài khoản bị khóa)</b>' : ''}
-                                                </span>
-                                            </label>
-                                        `;
+                                                        <label class="flex items-center p-1 hover:bg-gray-50 cursor-pointer text-sm ${isInactive ? 'text-red-400' : ''}">
+                                                            <input type="checkbox" name="modal_emp_ids" value="${emp.id}" 
+                                                                ${isAssigned ? 'checked' : ''} 
+                                                                ${!canSelect ? 'disabled' : ''} 
+                                                                class="mr-2 h-4 w-4">
+                                                            <span>
+                                                                ${emp.name} ${isInactive ? '<b class="text-xs">(Tài khoản bị khóa)</b>' : ''}
+                                                            </span>
+                                                        </label>
+                                                    `;
                     }).join('');
                 });
         }

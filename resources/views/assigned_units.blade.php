@@ -13,7 +13,6 @@
         </div>
     </div>
 
-    {{-- MODAL CẤU HÌNH NHÓM --}}
     <div id="audienceModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
 
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden">
@@ -36,8 +35,8 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12">
 
-                {{-- SIDEBAR --}}
-                <div class="lg:col-span-4 border-r bg-gray-50/70 p-5">
+                // Sidebar
+                <div class="lg:col-span-4 border-r bg-gray-50/70 p-5 flex flex-col h-[78vh]">
 
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="font-black text-gray-700 uppercase text-sm tracking-wide">
@@ -50,7 +49,8 @@
                         </span>
                     </div>
 
-                    <div id="audience-list" class="space-y-3"></div>
+                    <div id="audience-list" class="space-y-3 flex-1 overflow-y-auto pr-2">
+                    </div>
 
                     <button onclick="addNewAudienceForm()"
                         class="mt-5 w-full py-3 border-2 border-dashed border-green-300 text-green-600 rounded-2xl hover:bg-green-50 transition font-bold">
@@ -59,7 +59,7 @@
                     </button>
                 </div>
 
-                {{-- FORM --}}
+                // Form
                 <div class="lg:col-span-8 p-6 overflow-y-auto max-h-[78vh]">
 
                     <div id="no-selection-msg" class="h-full flex flex-col items-center justify-center py-24 text-center">
@@ -114,8 +114,8 @@
                                 </div>
                             </div>
 
-                            {{-- DINH DƯỠNG --}}
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            // Dinh dưỡng
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                                 <div>
                                     <label class="block text-xs font-black uppercase text-gray-400 mb-2">
@@ -137,6 +137,15 @@
 
                                 <div>
                                     <label class="block text-xs font-black uppercase text-gray-400 mb-2">
+                                        Glucid (g)
+                                    </label>
+
+                                    <input type="number" id="target_glucid" required
+                                        class="w-full rounded-xl border border-gray-200 px-4 py-3 bg-white focus:ring-2 focus:ring-green-300 outline-none">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-black uppercase text-gray-400 mb-2">
                                         Chất xơ (g)
                                     </label>
 
@@ -145,7 +154,6 @@
                                 </div>
                             </div>
 
-                            {{-- NOTE THÔNG BÁO NGHIỆP VỤ --}}
                             <div class="rounded-3xl border border-blue-100 bg-blue-50 p-5">
                                 <div class="flex items-start gap-4">
                                     <div
@@ -195,7 +203,7 @@
         </div>
     </div>
 
-    {{-- MODAL CHỌN NHÓM LẬP THỰC ĐƠN --}}
+    // Modal chọn món lập thực đơn
     <div id="menuSelectionModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
 
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
@@ -226,6 +234,8 @@
 
         </div>
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
@@ -242,6 +252,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadAssignedUnits();
         });
+
+        window.getUiDescription = () =>
+            "Giao diện: 'Thiết lập tiêu chuẩn dinh dưỡng' của Nhân viên.\n" +
+            "1. Các thành phần hiển thị: Danh sách các Khách hàng được doanh nghiệp phân công giao việc riêng cho nhân viên này phụ trách.\n" +
+            "2. Các nút chức năng chính trên từng dòng khách hàng/trường học:\n" +
+            "   - Nút 'Định mức': Dùng để cấu hình mục tiêu dinh dưỡng cho từng nhóm đối tượng thuộc khách hàng đó. Tại đây có thể quản lý các nhóm hiện có hoặc bấm nút thêm nhóm mới. Mỗi nhóm bắt buộc điền các ô: Tên nhóm đối tượng, Ngân sách / suất (VNĐ), Calories mục tiêu (Kcal), Protein (g), Fat/Lipid (g), Glucid (g), Chất xơ (g).\n" +
+            "   - Nút 'Thực đơn': Bấm vào sẽ hiện ra danh sách 'Chọn nhóm lập thực đơn'. Khi nhân viên bấm chọn một nhóm cụ thể, hệ thống sẽ TỰ ĐỘNG ĐIỀU HƯỚNG chuyển thẳng sang giao diện 'Lập Thực đơn' (Cách 1).\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Bước 1: Ấn nút 'Định mức' của khách hàng -> Cấu hình điền đầy đủ ngân sách và các chỉ số dinh dưỡng mục tiêu cho từng nhóm đối tượng -> Ấn lưu. Bước 2: Ấn nút 'Thực đơn' -> Chọn nhóm đối tượng tương ứng để hệ thống chuyển hướng sang trang chọn món.";
 
         async function loadAssignedUnits() {
             try {
@@ -261,58 +279,58 @@
 
                 if (!units || units.length === 0) {
                     container.innerHTML = `
-                            <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-gray-400">
-                                Chưa có đơn vị nào được phân công.
-                            </div>
-                        `;
+                                                                                    <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-gray-400">
+                                                                                        Chưa có đơn vị nào được phân công.
+                                                                                    </div>
+                                                                                `;
                     return;
                 }
 
                 container.innerHTML = units.map(unit => `
-                        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition p-6">
-                            <div class="flex items-start justify-between mb-5">
-                                <div class="h-16 w-16 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center">
-                                    <i class="fas fa-school text-3xl"></i>
-                                </div>
-                                <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black">
-                                    Đang quản lý
-                                </span>
-                            </div>
+                                                                                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition p-6">
+                                                                                    <div class="flex items-start justify-between mb-5">
+                                                                                        <div class="h-16 w-16 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center">
+                                                                                            <i class="fas fa-school text-3xl"></i>
+                                                                                        </div>
+                                                                                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black">
+                                                                                            Đang quản lý
+                                                                                        </span>
+                                                                                    </div>
 
-                            <h3 class="text-xl font-black text-gray-800 mb-2">
-                                ${unit.name}
-                            </h3>
+                                                                                    <h3 class="text-xl font-black text-gray-800 mb-2">
+                                                                                        ${unit.name}
+                                                                                    </h3>
 
-                            <p class="text-sm text-gray-500 mb-6">
-                                <i class="fas fa-map-marker-alt mr-1"></i>
-                                ${unit.address || 'Chưa cập nhật địa chỉ'}
-                            </p>
+                                                                                    <p class="text-sm text-gray-500 mb-6">
+                                                                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                                                                        ${unit.address || 'Chưa cập nhật địa chỉ'}
+                                                                                    </p>
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <button
-                                    onclick="openAudienceModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
-                                    class="py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 transition font-bold text-gray-700">
-                                    <i class="fas fa-cog mr-2"></i>
-                                    Định mức
-                                </button>
+                                                                                    <div class="grid grid-cols-2 gap-3">
+                                                                                        <button
+                                                                                            onclick="openAudienceModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
+                                                                                            class="py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 transition font-bold text-gray-700">
+                                                                                            <i class="fas fa-cog mr-2"></i>
+                                                                                            Định mức
+                                                                                        </button>
 
-                                <button
-                                    onclick="openMenuSelectionModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
-                                    class="py-3 rounded-2xl bg-green-500 hover:bg-green-600 transition font-black text-white shadow">
-                                    <i class="fas fa-utensils mr-2"></i>
-                                    Thực đơn
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
+                                                                                        <button
+                                                                                            onclick="openMenuSelectionModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
+                                                                                            class="py-3 rounded-2xl bg-green-500 hover:bg-green-600 transition font-black text-white shadow">
+                                                                                            <i class="fas fa-utensils mr-2"></i>
+                                                                                            Thực đơn
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            `).join('');
 
             } catch (e) {
                 console.error(e);
                 document.getElementById('unit-list').innerHTML = `
-                        <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-red-500">
-                            Không thể tải dữ liệu từ máy chủ.
-                        </div>
-                    `;
+                                                                                <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-red-500">
+                                                                                    Không thể tải dữ liệu từ máy chủ.
+                                                                                </div>
+                                                                            `;
             }
         }
 
@@ -339,30 +357,30 @@
 
                 if (currentAudiences.length === 0) {
                     list.innerHTML = `
-                            <div class="text-center text-gray-400 italic py-8">
-                                Chưa có nhóm nào
-                            </div>
-                        `;
+                                                                                    <div class="text-center text-gray-400 italic py-8">
+                                                                                        Chưa có nhóm nào
+                                                                                    </div>
+                                                                                `;
                 } else {
                     list.innerHTML = currentAudiences.map(a => `
-                            <button
-                                type="button"
-                                onclick="editAudience(${a.id})"
-                                class="w-full text-left p-4 rounded-2xl border border-gray-200 hover:border-green-400 hover:bg-green-50 transition group">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <div class="font-black text-gray-800 text-sm">
-                                            ${a.name}
-                                        </div>
-                                        <div class="text-xs text-gray-400 mt-1">
-                                            ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
-                                            ${a.target_calories || 0} Kcal
-                                        </div>
-                                    </div>
-                                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500"></i>
-                                </div>
-                            </button>
-                        `).join('');
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onclick="editAudience(${a.id})"
+                                                                                        class="w-full text-left p-4 rounded-2xl border border-gray-200 hover:border-green-400 hover:bg-green-50 transition group">
+                                                                                        <div class="flex items-center justify-between">
+                                                                                            <div>
+                                                                                                <div class="font-black text-gray-800 text-sm">
+                                                                                                    ${a.name}
+                                                                                                </div>
+                                                                                                <div class="text-xs text-gray-400 mt-1">
+                                                                                                    ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
+                                                                                                    ${a.target_calories || 0} Kcal
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500"></i>
+                                                                                        </div>
+                                                                                    </button>
+                                                                                `).join('');
                 }
 
                 hideForm();
@@ -383,6 +401,7 @@
 
         function addNewAudienceForm() {
             document.getElementById('audienceForm').reset();
+            document.getElementById('target_glucid').value = 0;
             document.getElementById('audience_id').value = '';
             document.getElementById('btnDeleteAudience').classList.add('hidden');
             showForm();
@@ -399,6 +418,7 @@
             document.getElementById('target_calories').value = a.target_calories || 0;
             document.getElementById('target_protein').value = a.target_protein || 0;
             document.getElementById('target_fat').value = a.target_fat || 0;
+            document.getElementById('target_glucid').value = a.target_glucid || 0;
             document.getElementById('target_fiber').value = a.target_fiber || 0;
 
             document.getElementById('btnDeleteAudience').classList.remove('hidden');
@@ -413,12 +433,26 @@
 
             const payload = {
                 unit_id: parseInt(unitId),
+
                 name: document.getElementById('target_name').value.trim(),
-                budget_per_serving: parseFloat(document.getElementById('budget_per_serving').value) || 0,
-                target_calories: parseFloat(document.getElementById('target_calories').value) || 0,
-                target_protein: parseFloat(document.getElementById('target_protein').value) || 0,
-                target_fat: parseFloat(document.getElementById('target_fat').value) || 0,
-                target_fiber: parseFloat(document.getElementById('target_fiber').value) || 0,
+
+                budget_per_serving:
+                    parseFloat(document.getElementById('budget_per_serving').value) || 0,
+
+                target_calories:
+                    parseFloat(document.getElementById('target_calories').value) || 0,
+
+                target_protein:
+                    parseFloat(document.getElementById('target_protein').value) || 0,
+
+                target_fat:
+                    parseFloat(document.getElementById('target_fat').value) || 0,
+
+                target_glucid:
+                    parseFloat(document.getElementById('target_glucid').value) || 0,
+
+                target_fiber:
+                    parseFloat(document.getElementById('target_fiber').value) || 0,
             };
 
             if (id) {
@@ -511,39 +545,39 @@
 
                 if (audiences.length === 0) {
                     containerEl.innerHTML = `
-                            <div class="text-center py-10 text-gray-400">
-                                Chưa có nhóm đối tượng nào.
-                            </div>
-                        `;
+                                                                                    <div class="text-center py-10 text-gray-400">
+                                                                                        Chưa có nhóm đối tượng nào.
+                                                                                    </div>
+                                                                                `;
                 } else {
                     containerEl.innerHTML = audiences.map(a => `
-                            <button
-                                onclick="redirectToPlanner(${unitId}, ${a.id})"
-                                class="w-full text-left p-4 rounded-2xl border border-gray-100 hover:border-green-300 hover:bg-green-50 transition group">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <div class="font-black text-gray-800 text-sm">
-                                            ${a.name}
-                                        </div>
-                                        <div class="text-xs text-gray-400 mt-1">
-                                            ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
-                                            ${a.target_calories || 0} Kcal
-                                        </div>
-                                    </div>
-                                    <div class="h-9 w-9 rounded-full bg-white border flex items-center justify-center text-gray-400 group-hover:bg-green-500 group-hover:text-white transition">
-                                        <i class="fas fa-arrow-right text-xs"></i>
-                                    </div>
-                                </div>
-                            </button>
-                        `).join('');
+                                                                                    <button
+                                                                                        onclick="redirectToPlanner(${unitId}, ${a.id})"
+                                                                                        class="w-full text-left p-4 rounded-2xl border border-gray-100 hover:border-green-300 hover:bg-green-50 transition group">
+                                                                                        <div class="flex items-center justify-between">
+                                                                                            <div>
+                                                                                                <div class="font-black text-gray-800 text-sm">
+                                                                                                    ${a.name}
+                                                                                                </div>
+                                                                                                <div class="text-xs text-gray-400 mt-1">
+                                                                                                    ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
+                                                                                                    ${a.target_calories || 0} Kcal
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="h-9 w-9 rounded-full bg-white border flex items-center justify-center text-gray-400 group-hover:bg-green-500 group-hover:text-white transition">
+                                                                                                <i class="fas fa-arrow-right text-xs"></i>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </button>
+                                                                                `).join('');
                 }
             } catch (e) {
                 console.error(e);
                 loadingEl.innerHTML = `
-                        <div class="text-center text-red-500 text-sm py-10">
-                            Không thể tải dữ liệu nhóm đối tượng
-                        </div>
-                    `;
+                                                                                <div class="text-center text-red-500 text-sm py-10">
+                                                                                    Không thể tải dữ liệu nhóm đối tượng
+                                                                                </div>
+                                                                            `;
             }
         }
 

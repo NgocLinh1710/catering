@@ -50,14 +50,24 @@
                 </div>
             </div>
         </div>
-
     </div>
+
+    <x-ai-chatbot />
 @endsection
 
 @section('scripts')
     <script src="{{ asset('js/pagination.js') }}"></script>
 
     <script>
+        window.getUiDescription = () =>
+            "Giao diện: 'Tổng quan Admin' (Quản lý doanh nghiệp sử dụng hệ thống).\n" +
+            "1. Các thành phần hiển thị: Danh sách/Bảng các doanh nghiệp đang sử dụng hệ thống.\n" +
+            "2. Các nút chức năng trên từng doanh nghiệp:\n" +
+            "   - Nút 'Mở rộng': Nâng cấp quy mô số lượng Khách hàng hợp tác của doanh nghiệp đó từ hạn mức 5 lên Không giới hạn.\n" +
+            "   - Nút 'Khóa': Khóa tài khoản của doanh nghiệp. HỆ QUẢ: Toàn bộ tài khoản nhân viên do doanh nghiệp này tạo cũng sẽ bị khóa tự động và không thể đăng nhập, tuy nhiên DỮ LIỆU VẪN ĐƯỢC GIỮ LẠI trong hệ thống và có thể dùng nút này để Mở khóa lại.\n" +
+            "   - Nút 'Xóa': Xóa vĩnh viễn doanh nghiệp. HỆ QUẢ CỰC KỲ NGUY HIỂM: Toàn bộ dữ liệu liên quan (tài khoản nhân viên, nguyên liệu, món ăn, thực đơn do nhân viên tạo) sẽ bị XÓA SẠCH VÀ KHÔNG THỂ KHÔI PHỤC.\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Xem danh sách doanh nghiệp -> Tùy chọn thực hiện Mở rộng quy mô, Khóa/Mở khóa để tạm dừng, hoặc Xóa vĩnh viễn để dọn dẹp dữ liệu.";
+
         const apiHeaders = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -87,12 +97,12 @@
 
                     if (!res.data || res.data.length === 0) {
                         tableBody.innerHTML = `
-                                    <tr>
-                                        <td colspan="6" class="p-8 text-center text-gray-500">
-                                            <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
-                                            Không tìm thấy doanh nghiệp nào phù hợp.
-                                        </td>
-                                    </tr>`;
+                                            <tr>
+                                                <td colspan="6" class="p-8 text-center text-gray-500">
+                                                    <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
+                                                    Không tìm thấy doanh nghiệp nào phù hợp.
+                                                </td>
+                                            </tr>`;
                         return;
                     }
 
@@ -103,48 +113,48 @@
                         const cleanContact = rawContact.replace(' (Đã mở rộng Quy mô)', '');
 
                         tableBody.innerHTML += `
-                                    <tr class="border-b hover:bg-gray-50 text-sm">
-                                        <td class="p-4 font-semibold text-gray-800">${company.company_name || 'N/A'}</td>
-                                        <td class="p-4 text-gray-600">${cleanContact || 'N/A'}</td>
-                                        <td class="p-4">
-                                            <div><i class="fas fa-envelope text-gray-400 mr-1"></i>${company.email}</div>
-                                            <div><i class="fas fa-phone text-gray-400 mr-1"></i>${company.phone || 'N/A'}</div>
-                                        </td>
-                                        <td class="p-4">
-                                            ${isExpanded ? `
-                                                <span class="px-2 py-1 rounded bg-purple-100 text-purple-700 text-xs font-bold shadow-sm">
-                                                    <i class="fas fa-crown mr-1"></i> Không giới hạn
-                                                </span>
-                                            ` : `
-                                                <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-bold">
-                                                    <i class="fas fa-leaf mr-1 text-green-500"></i> Gói Free (Giới hạn KH)
-                                                </span>
-                                            `}
-                                        </td>
-                                        <td class="p-4">
-                                            <span class="px-2 py-1 rounded-full text-xs font-bold ${isLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
-                                                ${isLocked ? 'Đang Khóa' : 'Hoạt động'}
-                                            </span>
-                                        </td>
-                                        <td class="p-4 text-center space-x-1 whitespace-nowrap">
-                                            ${!isExpanded ? `
-                                                <button onclick="upgradeScale(${company.id})" 
-                                                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded font-medium text-xs transition shadow" title="Mở rộng quy mô cung cấp suất ăn">
-                                                    <i class="fas fa-arrow-up mr-1"></i>Mở rộng
-                                                </button>
-                                            ` : ''}
+                                            <tr class="border-b hover:bg-gray-50 text-sm">
+                                                <td class="p-4 font-semibold text-gray-800">${company.company_name || 'N/A'}</td>
+                                                <td class="p-4 text-gray-600">${cleanContact || 'N/A'}</td>
+                                                <td class="p-4">
+                                                    <div><i class="fas fa-envelope text-gray-400 mr-1"></i>${company.email}</div>
+                                                    <div><i class="fas fa-phone text-gray-400 mr-1"></i>${company.phone || 'N/A'}</div>
+                                                </td>
+                                                <td class="p-4">
+                                                    ${isExpanded ? `
+                                                        <span class="px-2 py-1 rounded bg-purple-100 text-purple-700 text-xs font-bold shadow-sm">
+                                                            <i class="fas fa-crown mr-1"></i> Không giới hạn
+                                                        </span>
+                                                    ` : `
+                                                        <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-bold">
+                                                            <i class="fas fa-leaf mr-1 text-green-500"></i> Gói Free (Giới hạn KH)
+                                                        </span>
+                                                    `}
+                                                </td>
+                                                <td class="p-4">
+                                                    <span class="px-2 py-1 rounded-full text-xs font-bold ${isLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                                                        ${isLocked ? 'Đang Khóa' : 'Hoạt động'}
+                                                    </span>
+                                                </td>
+                                                <td class="p-4 text-center space-x-1 whitespace-nowrap">
+                                                    ${!isExpanded ? `
+                                                        <button onclick="upgradeScale(${company.id})" 
+                                                            class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded font-medium text-xs transition shadow" title="Mở rộng quy mô cung cấp suất ăn">
+                                                            <i class="fas fa-arrow-up mr-1"></i>Mở rộng
+                                                        </button>
+                                                    ` : ''}
 
-                                            <button onclick="toggleLockCompany(${company.id}, ${isLocked ? 'true' : 'false'})" 
-                                                class="px-3 py-1 rounded text-white font-medium text-xs transition shadow ${isLocked ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-amber-500 hover:bg-amber-600'}">
-                                                <i class="fas ${isLocked ? 'fa-unlock' : 'fa-lock'} mr-1"></i>${isLocked ? 'Mở khóa' : 'Khóa'}
-                                            </button>
-                                            <button onclick="deleteCompany(${company.id})" 
-                                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-medium text-xs transition shadow">
-                                                <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
+                                                    <button onclick="toggleLockCompany(${company.id}, ${isLocked ? 'true' : 'false'})" 
+                                                        class="px-3 py-1 rounded text-white font-medium text-xs transition shadow ${isLocked ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-amber-500 hover:bg-amber-600'}">
+                                                        <i class="fas ${isLocked ? 'fa-unlock' : 'fa-lock'} mr-1"></i>${isLocked ? 'Mở khóa' : 'Khóa'}
+                                                    </button>
+                                                    <button onclick="deleteCompany(${company.id})" 
+                                                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-medium text-xs transition shadow">
+                                                        <i class="fas fa-trash-alt mr-1"></i>Xóa
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `;
                     });
 
                     if (typeof paginator.render === 'function') {
