@@ -105,4 +105,23 @@ class AuthController extends Controller
             'message' => 'Đã đăng xuất thành công'
         ]);
     }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        $user->password = Hash::make($request->password);
+        $user->must_change_password = false;
+        $user->password_change_deadline = null;
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Đổi mật khẩu thành công.'
+        ]);
+    }
 }

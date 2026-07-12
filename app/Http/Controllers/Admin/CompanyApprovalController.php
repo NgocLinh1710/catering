@@ -8,6 +8,8 @@ use App\Models\CompanyRegistration;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CompanyApprovedMail;
 
 class CompanyApprovalController extends Controller
 {
@@ -41,13 +43,19 @@ class CompanyApprovalController extends Controller
         $randomPassword = Str::random(8);
 
         // Tạo tài khoản doanh nghiệp
-        User::create([
+        $user = User::create([
             'name' => $company->contact_person,
             'email' => $company->email,
             'password' => Hash::make($randomPassword),
             'role' => 'company',
-            'status' => 'active'
+            'status' => 'active',
+            'must_change_password' => true,
+            'password_change_deadline' => now()->addHours(48),
         ]);
+
+        Mail::to($user->email)->send(
+            new CompanyApprovedMail($user, $randomPassword)
+        );
 
         // Chuyển bản ghi hiện tại sang active
         $company->status = 'active';

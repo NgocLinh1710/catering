@@ -93,10 +93,43 @@
             </div>
         </header>
 
+        <div id="passwordAlert"
+            class="hidden mx-8 mt-4 p-4 rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-800 flex items-center justify-between">
+            <div>
+                <i class="fas fa-triangle-exclamation mr-2"></i>
+                Bạn đang sử dụng mật khẩu tạm thời. Vui lòng đổi mật khẩu trước thời hạn quy định.
+            </div>
+            <button onclick="openChangePasswordModal()"
+                class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                Đổi ngay
+            </button>
+        </div>
+
         <div class="flex-1 overflow-y-auto p-8">
             @yield('content')
         </div>
     </main>
+
+    <div id="changePasswordModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-lg font-bold mb-4">Đổi mật khẩu</h3>
+
+            <input id="newPassword" type="password" autocomplete="new-password" placeholder="Mật khẩu mới"
+                class="w-full border rounded p-2 mb-1">
+            <p id="newPasswordError" class="text-sm text-red-500 mb-3"></p>
+
+            <input id="newPasswordConfirmation" type="password" autocomplete="new-password"
+                placeholder="Nhập lại mật khẩu mới" class="w-full border rounded p-2 mb-1">
+            <p id="confirmPasswordError" class="text-sm text-red-500 mb-4"></p>
+
+            <div class="flex justify-end gap-2">
+                <button onclick="closeChangePasswordModal()" class="px-4 py-2 border rounded">Đóng</button>
+                <button onclick="submitPasswordChange()" class="px-4 py-2 bg-green-500 text-white rounded">
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const token = localStorage.getItem('access_token');
@@ -107,8 +140,9 @@
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
-                }
+                },
             })
                 .then(response => {
                     if (response.status === 401) logout();
@@ -122,6 +156,10 @@
                     const role = user.role.toLowerCase();
                     const overviewBtn = document.getElementById('menu-overview');
 
+                    if (user.must_change_password) {
+                        document.getElementById('passwordAlert').classList.remove('hidden');
+                    }
+
                     // Ẩn tất cả menu trước khi check role để tránh bị chồng chéo
                     const allMenus = [
                         'menu-overview',
@@ -132,18 +170,19 @@
                         'menu-planning',
                         'menu-units',
                         'menu-standard'
-                    ]; allMenus.forEach(id => {
+                    ];
+                    allMenus.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.style.display = 'none';
                     });
 
                     // Phân quyền hiển thị & Gán link Tổng quan
                     if (role === 'admin') {
-                        overviewBtn.href = "/admin/tong-quan"; // Link riêng của Admin
+                        overviewBtn.href = "/admin/tong-quan";
                         showMenu(['menu-overview', 'menu-companies']);
                     }
                     else if (role === 'company' || role === 'company_admin') {
-                        overviewBtn.href = "/cong-ty/tong-quan"; // Link Dashboard Công ty 
+                        overviewBtn.href = "/cong-ty/tong-quan";
                         showMenu([
                             'menu-overview',
                             'menu-units',
@@ -161,11 +200,10 @@
                 .catch(error => console.error("Lỗi xác thực:", error));
         }
 
-        // Hàm bổ trợ để hiện menu
         function showMenu(menuIds) {
             menuIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.display = 'flex';
+                if (el) el.style.display = 'flex'; // Ép kiểu flex để ăn theo class items-center của bạn
             });
         }
 
@@ -173,6 +211,76 @@
             localStorage.removeItem('access_token');
             window.location.href = '/login';
         }
+
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('hidden');
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('hidden');
+        }
+
+        async function submitPasswordChange() {
+            const password = document.getElementById('newPassword').value;
+            const confirmation = document.getElementById('newPasswordConfirmation').value;
+
+            // Chặn submit nếu form validation đang có lỗi text hiển thị
+            if (document.getElementById('newPasswordError').textContent || document.getElementById('confirmPasswordError').textContent) {
+                alert('Vui lòng kiểm tra lại điều kiện mật khẩu!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        password,
+                        password_confirmation: confirmation
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    document.getElementById('passwordAlert').classList.add('hidden');
+                    closeChangePasswordModal();
+                    alert('Đổi mật khẩu thành công!');
+                } else {
+                    alert(data.message || 'Đổi mật khẩu thất bại.');
+                }
+            } catch (err) {
+                alert('Có lỗi hệ thống xảy ra.');
+            }
+        }
+
+        // Lắng nghe sự kiện Validation (Đã xóa đoạn trùng lặp)
+        const pwInput = document.getElementById('newPassword');
+        const confirmInput = document.getElementById('newPasswordConfirmation');
+        const pwError = document.getElementById('newPasswordError');
+        const confirmError = document.getElementById('confirmPasswordError');
+
+        let confirmTimer;
+
+        pwInput.addEventListener('input', () => {
+            const ok = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pwInput.value);
+            pwError.textContent = ok || pwInput.value === ''
+                ? ''
+                : 'Mật khẩu phải có ít nhất 8 ký tự, gồm cả chữ và số.';
+        });
+
+        confirmInput.addEventListener('input', () => {
+            clearTimeout(confirmTimer);
+            confirmTimer = setTimeout(() => {
+                confirmError.textContent =
+                    (confirmInput.value && confirmInput.value !== pwInput.value)
+                        ? 'Mật khẩu xác nhận chưa khớp.'
+                        : '';
+            }, 400);
+        });
 
         document.addEventListener('DOMContentLoaded', checkUserRole);
     </script>

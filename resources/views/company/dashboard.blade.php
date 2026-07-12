@@ -150,12 +150,12 @@
 
                 if (!data.clients || data.clients.length === 0) {
                     tableBody.innerHTML = `
-                                                        <tr>
-                                                            <td colspan="3" class="p-8 text-center text-gray-400 font-bold">
-                                                                <i class="fas fa-folder-open text-xl mb-2 block text-gray-200"></i>
-                                                                Chưa có dữ liệu đơn vị khách hàng nào trong hệ thống.
-                                                            </td>
-                                                        </tr>`;
+                                                            <tr>
+                                                                <td colspan="3" class="p-8 text-center text-gray-400 font-bold">
+                                                                    <i class="fas fa-folder-open text-xl mb-2 block text-gray-200"></i>
+                                                                    Chưa có dữ liệu đơn vị khách hàng nào trong hệ thống.
+                                                                </td>
+                                                            </tr>`;
                 } else {
                     data.clients.forEach(client => {
                         const isAction = client.status == 1 || client.status == 'active';
@@ -164,12 +164,12 @@
                             : `<span class="bg-gray-50 text-gray-400 px-2.5 py-1 rounded-lg text-[10px] font-black border border-gray-100">Tạm ngưng hợp tác</span>`;
 
                         tableBody.innerHTML += `
-                                                            <tr class="hover:bg-gray-50/50 transition">
-                                                                <td class="p-4 font-bold text-gray-800">${client.name}</td>
-                                                                <td class="p-4 text-gray-500">${client.address || 'Chưa cập nhật'}</td>
-                                                                <td class="p-4 text-center">${statusBadge}</td>
-                                                            </tr>
-                                                        `;
+                                                                <tr class="hover:bg-gray-50/50 transition">
+                                                                    <td class="p-4 font-bold text-gray-800">${client.name}</td>
+                                                                    <td class="p-4 text-gray-500">${client.address || 'Chưa cập nhật'}</td>
+                                                                    <td class="p-4 text-center">${statusBadge}</td>
+                                                                </tr>
+                                                            `;
                     });
                 }
 

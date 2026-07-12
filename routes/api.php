@@ -26,7 +26,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Lấy thông tin tài khoản đang đăng nhập
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return response()->json([
+            'id' => $request->user()->id,
+            'name' => $request->user()->name,
+            'email' => $request->user()->email,
+            'role' => $request->user()->role,
+            'must_change_password' => $request->user()->must_change_password,
+            'password_change_deadline' => $request->user()->password_change_deadline,
+        ]);
     });
 
     // Đăng xuất
@@ -80,4 +87,5 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/ai/chat', [AiChatController::class, 'chat']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });

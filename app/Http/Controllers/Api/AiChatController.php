@@ -134,9 +134,7 @@ class AiChatController extends Controller
         }
     }
 
-    /**
-     * Định nghĩa danh sách các hàm (Tools) hỗ trợ AI tra cứu DB
-     */
+    // Định nghĩa danh sách các hàm (Tools) hỗ trợ AI tra cứu DB
     private function defineTools()
     {
         return [
@@ -185,9 +183,6 @@ class AiChatController extends Controller
         ];
     }
 
-    /**
-     * Bộ điều hướng phân phối lệnh thực thi Eloquent ORM SQL từ tham số AI cung cấp
-     */
     private function executeTargetFunction($name, $args)
     {
         switch ($name) {

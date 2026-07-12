@@ -40,13 +40,6 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-between text-sm">
-                <label class="flex items-center text-gray-600">
-                    <input type="checkbox" class="mr-2 rounded text-green-500 focus:ring-green-400"> Ghi nhớ tôi
-                </label>
-                <a href="#" class="text-green-600 hover:underline">Quên mật khẩu?</a>
-            </div>
-
             <button type="submit"
                 class="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition shadow-md">
                 Đăng Nhập
