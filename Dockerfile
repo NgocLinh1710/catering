@@ -42,5 +42,12 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Cấu hình cổng chạy mạng cho Web qua Nginx
 COPY .nginx/nginx.conf /etc/nginx/sites-available/default
 
+# Cập nhật quyền truy cập
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+COPY .nginx/nginx.conf /etc/nginx/sites-available/default
+
+# Xóa sạch cache cấu hình cũ trên Render:
+RUN php artisan config:clear && php artisan cache:clear
+
 # Lệnh khởi chạy: Bật cấu hình mạng Nginx và chạy nền PHP
 CMD service nginx start && php-fpm

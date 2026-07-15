@@ -22,7 +22,7 @@ class AiChatController extends Controller
 
         $uiDescription = $request->input('ui_description', 'Giao diện chung của hệ thống quản lý suất ăn.');
 
-        $this->apiKey = env('GROQ_API_KEY');
+        $this->apiKey = config('services.grok.api_key');
         if (!$this->apiKey) {
             return response()->json(['status' => 'error', 'message' => 'Lỗi cấu hình API Key.'], 500);
         }
