@@ -33,21 +33,19 @@ COPY . /var/www
 # Kiểm tra nếu bạn có file requirements.txt thì tự động cài đặt thư viện Python luôn
 RUN if [ -f /var/www/requirements.txt ] ; then pip3 install -r /var/www/requirements.txt --break-system-packages ; fi
 
-# Cài đặt các gói thư viện PHP của Laravel (Bỏ qua môi trường dev để chạy cho nhẹ)
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Cài đặt các gói thư viện PHP (Thêm cờ --no-scripts để tránh lỗi sập khi build)
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
-# Cấp quyền đọc ghi file cho thư mục lưu trữ của Laravel (Tránh lỗi Error 500)
+# Cấp quyền đọc ghi file cho thư mục lưu trữ của Laravel
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Cấu hình cổng chạy mạng cho Web qua Nginx
 COPY .nginx/nginx.conf /etc/nginx/sites-available/default
 
-# Cập nhật quyền truy cập
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-COPY .nginx/nginx.conf /etc/nginx/sites-available/default
-
-# Xóa sạch cache cấu hình cũ trên Render:
-RUN php artisan config:clear && php artisan cache:clear
+# Chạy các lệnh tối ưu hóa thủ công sau khi composer đã cài xong hoàn toàn
+RUN php artisan package:discover --ansi
+RUN php artisan config:clear
+RUN php artisan cache:clear
 
 # Lệnh khởi chạy: Bật cấu hình mạng Nginx và chạy nền PHP
 CMD service nginx start && php-fpm
