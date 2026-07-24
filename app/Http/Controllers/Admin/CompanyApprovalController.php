@@ -26,10 +26,6 @@ class CompanyApprovalController extends Controller
 
     public function approve($id)
     {
-        return response()->json([
-            'step' => '1'
-        ]);
-
         $company = CompanyRegistration::find($id);
 
         if (!$company || $company->status !== 'pending') {
@@ -46,6 +42,10 @@ class CompanyApprovalController extends Controller
             CompanyRegistration::where('email', $company->email)
                 ->where('status', 'rejected')
                 ->delete();
+
+            return response()->json([
+                'step' => '2'
+            ]);
 
             $randomPassword = Str::random(8);
 
