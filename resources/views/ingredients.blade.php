@@ -20,7 +20,7 @@
 
                 <button onclick="openIngModal(null)"
                     class="px-4 py-2 bg-[#86efac] text-gray-900 font-bold rounded-lg hover:bg-green-400 transition flex items-center shadow-md shrink-0">
-                    <i class="fas fa-plus mr-2"></i> Thêm Thực Phẩm
+                    <i class="fas fa-plus mr-2"></i> Thêm Nguyên liệu
                 </button>
             </div>
         </div>
@@ -29,7 +29,7 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50 text-gray-600 border-b text-sm uppercase">
-                        <th class="p-4">Tên thực phẩm</th>
+                        <th class="p-4">Tên nguyên liệu</th>
                         <th class="p-4 text-center">Calories (Kcal)</th>
                         <th class="p-4 text-center">Protein (g)</th>
                         <th class="p-4 text-center">Giá nhập/kg</th>
@@ -40,7 +40,7 @@
                 <tbody id="ing-table-body">
                     <tr>
                         <td colspan="6" class="p-8 text-center text-gray-400 italic">
-                            <i class="fas fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu thực phẩm...
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu nguyên liệu...
                         </td>
                     </tr>
                 </tbody>
@@ -67,8 +67,8 @@
 
             <form id="ingForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold mb-1 text-gray-700">Tên thực phẩm</label>
-                    <input type="text" id="ing_name" required placeholder="Nhập tên thực phẩm..."
+                    <label class="block text-sm font-semibold mb-1 text-gray-700">Tên nguyên liệu</label>
+                    <input type="text" id="ing_name" required placeholder="Nhập tên nguyên liệu..."
                         class="w-full border p-2 rounded focus:ring-2 focus:ring-[#86efac] outline-none transition">
                 </div>
 
@@ -177,11 +177,11 @@
 
         window.getUiDescription = () =>
             "Giao diện: 'Quản lý Nguyên liệu' của Doanh nghiệp.\n" +
-            "1. Bộ lọc: Ô 'Tìm kiếm' dùng để lọc tìm nguyên liệu nhanh theo tên thực phẩm.\n" +
-            "2. Nút 'Thêm Thực Phẩm': Bấm vào mở Form nhập các chỉ số (tính trên 1kg thực phẩm) gồm: Tên thực phẩm, Tags Cảnh báo (Dị ứng/Tôn giáo), Calories (Kcal), Protein (g), Lipid/Béo (g), Glucid/Bột (g), Chất xơ (g), Giá nhập (VNĐ/kg).\n" +
+            "1. Bộ lọc: Ô 'Tìm kiếm' dùng để lọc tìm nguyên liệu nhanh theo tên nguyên liệu.\n" +
+            "2. Nút 'Thêm Nguyên liệu': Bấm vào mở Form nhập các chỉ số (tính trên 1kg nguyên liệu) gồm: Tên nguyên liệu, Tags Cảnh báo (Dị ứng/Tôn giáo), Calories (Kcal), Protein (g), Lipid/Béo (g), Glucid/Bột (g), Chất xơ (g), Giá nhập (VNĐ/kg).\n" +
             "3. Nút cập nhật giá biến động (Hình đồng hồ): Dùng khi giá thị trường thay đổi. Form gồm: Ô Nguyên liệu (⚠️ BỊ LÀM MỜ - DISABLED, không cho sửa vì hệ thống tự khóa theo món đang chọn), ô Giá mới (VNĐ/kg), và ô Ngày áp dụng.\n" +
             "4. Các nút thao tác khác: Nút hình cây bút (Chỉnh sửa toàn bộ thông tin) và Nút hình thùng rác (Xóa nguyên liệu khỏi kho).\n" +
-            "➡️ THỨ TỰ THỰC HIỆN: Thêm thực phẩm vào kho và điền đầy đủ các chỉ số dinh dưỡng/tag cảnh báo -> Khi giá cả thị trường thay đổi, chọn món và ấn nút hình đồng hồ để cập nhật giá biến động theo ngày áp dụng.";
+            "➡️ THỨ TỰ THỰC HIỆN: Thêm nguyên liệu vào kho và điền đầy đủ các chỉ số dinh dưỡng/tag cảnh báo -> Khi giá cả thị trường thay đổi, chọn món và ấn nút hình đồng hồ để cập nhật giá biến động theo ngày áp dụng.";
 
         async function loadData(page = 1, search = '') {
             paginator.currentPage = page;
@@ -212,36 +212,36 @@
                         : '';
 
                     return `
-                                                        <tr class="border-b hover:bg-gray-50 transition group text-sm">
-                                                            <td class="p-4">
-                                                                <div class="flex flex-col">
-                                                                    <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
-                                                                    <div class="mt-1">${tagHtml}</div>
-                                                                    <span class="text-[10px] text-gray-400 font-normal italic mt-1">
-                                                                        Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
-                                                                    </span>
-                                                                </div>
-                                                            </td>
-                                                            <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
-                                                            <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
-                                                            <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
-                                                            <td class="p-4 text-center">
-                                                                <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
-                                                                    class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
-                                                                    <i class="fas fa-history"></i>
-                                                                </button>
-                                                            </td>
-                                                            <td class="p-4 text-center">
-                                                                <div class="flex justify-center space-x-2">
-                                                                    <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
-                                                                        <i class="fas fa-edit"></i>
-                                                                    </button>
-                                                                    <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
-                                                                        <i class="fas fa-trash-alt"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>`;
+                                                                    <tr class="border-b hover:bg-gray-50 transition group text-sm">
+                                                                        <td class="p-4">
+                                                                            <div class="flex flex-col">
+                                                                                <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
+                                                                                <div class="mt-1">${tagHtml}</div>
+                                                                                <span class="text-[10px] text-gray-400 font-normal italic mt-1">
+                                                                                    Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
+                                                                                </span>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
+                                                                        <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
+                                                                        <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
+                                                                        <td class="p-4 text-center">
+                                                                            <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
+                                                                                class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
+                                                                                <i class="fas fa-history"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                        <td class="p-4 text-center">
+                                                                            <div class="flex justify-center space-x-2">
+                                                                                <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
+                                                                                    <i class="fas fa-edit"></i>
+                                                                                </button>
+                                                                                <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
+                                                                                    <i class="fas fa-trash-alt"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>`;
                 }).join('');
 
                 paginator.render(result.last_page, result.current_page);

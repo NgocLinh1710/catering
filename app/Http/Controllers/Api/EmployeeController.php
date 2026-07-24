@@ -48,7 +48,7 @@ class EmployeeController extends Controller
         $request->validate(
             [
                 'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
+                'email' => 'required|email',
                 'password' => [
                     'required',
                     'min:6',
@@ -61,12 +61,21 @@ class EmployeeController extends Controller
             ]
         );
 
+        $email = trim($request->email);
+
+        if (User::where('email', $email)->exists()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email "' . $email . '" đã được sử dụng để đăng ký một tài khoản khác trong hệ thống. Mỗi tài khoản phải sử dụng một địa chỉ email duy nhất. Vui lòng nhập email khác cho nhân viên.'
+            ], 422);
+        }
+
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id ?? $currentUser->id;
 
         $employee = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => $email,
             'password' => Hash::make($request->password),
             'role' => 'employee',
             'company_id' => $companyId,
@@ -92,7 +101,7 @@ class EmployeeController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email',
             'password' => [
                 'nullable',
                 'min:6',
@@ -103,8 +112,21 @@ class EmployeeController extends Controller
             'password.regex' => 'Mật khẩu phải chứa cả chữ cái và số.'
         ]);
 
+        $email = trim($request->email);
+
+        $emailExists = User::where('email', $email)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($emailExists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không thể cập nhật nhân viên. Email "' . $email . '" đã được sử dụng bởi một tài khoản khác trong hệ thống. Vui lòng sử dụng địa chỉ email khác.'
+            ], 422);
+        }
+
         $employee->name = $request->name;
-        $employee->email = $request->email;
+        $employee->email = $email;
 
         if ($request->filled('password')) {
             $employee->password = Hash::make($request->password);

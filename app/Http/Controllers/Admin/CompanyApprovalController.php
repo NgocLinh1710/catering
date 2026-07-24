@@ -53,9 +53,21 @@ class CompanyApprovalController extends Controller
             'password_change_deadline' => now()->addHours(48),
         ]);
 
-        Mail::to($user->email)->send(
-            new CompanyApprovedMail($user, $randomPassword)
-        );
+        try {
+            Mail::to($user->email)->send(
+                new CompanyApprovedMail($user, $randomPassword)
+            );
+        } catch (\Throwable $e) {
+            \Log::error('MAIL ERROR', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
 
         // Chuyển bản ghi hiện tại sang active
         $company->status = 'active';

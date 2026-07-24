@@ -105,7 +105,12 @@ class DishController extends Controller
             'ingredients.*.weight' => 'required|numeric|min:0',
         ]);
 
-        $dish = Dish::findOrFail($id);
+        $user = auth()->user();
+        $companyId = $user->company_id ?? $user->id;
+
+        $dish = Dish::where('company_id', $companyId)
+            ->where('id', $id)
+            ->firstOrFail();
 
         return DB::transaction(function () use ($request, $dish) {
 

@@ -19,6 +19,7 @@ class AiChatController extends Controller
         $mode = $request->input('mode', 'nutrition_analysis');
         $userMessage = $request->input('message', '');
         $formContext = $request->input('form_context', []);
+        $companyId = auth()->user()->company_id ?? auth()->id();
 
         $uiDescription = $request->input('ui_description', 'Giao diện chung của hệ thống quản lý suất ăn.');
 
@@ -94,7 +95,11 @@ class AiChatController extends Controller
                     $functionName = $toolCall['function']['name'];
                     $functionArgs = json_decode($toolCall['function']['arguments'], true) ?? [];
 
-                    $localResult = $this->executeTargetFunction($functionName, $functionArgs);
+                    $localResult = $this->executeTargetFunction(
+                        $functionName,
+                        $functionArgs,
+                        $companyId
+                    );
 
                     $messages[] = [
                         'role' => 'tool',
@@ -183,11 +188,11 @@ class AiChatController extends Controller
         ];
     }
 
-    private function executeTargetFunction($name, $args)
+    private function executeTargetFunction($name, $args, $companyId)
     {
         switch ($name) {
             case 'search_dishes':
-                $query = Dish::query();
+                $query = Dish::where('company_id', $companyId);
                 if (!empty($args['category'])) {
                     $query->where('category', 'LIKE', '%' . $args['category'] . '%');
                 }
@@ -205,7 +210,7 @@ class AiChatController extends Controller
                 })->toArray();
 
             case 'get_dish_statistics':
-                $query = Dish::query();
+                $query = Dish::where('company_id', $companyId);
                 if (!empty($args['category'])) {
                     $query->where('category', 'LIKE', '%' . $args['category'] . '%');
                 }
@@ -238,12 +243,16 @@ class AiChatController extends Controller
             case 'filter_dishes_by_allergy':
                 $tag = mb_strtolower($args['allergy_tag'], 'UTF-8');
 
-                $matchedDishes = Dish::whereHas('ingredients', function ($q) use ($tag) {
-                    $q->whereRaw('LOWER(allergy_tags) LIKE ?', ['%' . $tag . '%']);
-                })->get();
+                $matchedDishes = Dish::where('company_id', $companyId)
+                    ->whereHas('ingredients', function ($q) use ($tag) {
+                        $q->whereRaw('LOWER(allergy_tags) LIKE ?', ['%' . $tag . '%']);
+                    })
+                    ->get();
 
                 if ($matchedDishes->isEmpty()) {
-                    $allDishes = Dish::with('ingredients')->get();
+                    $allDishes = Dish::where('company_id', $companyId)
+                        ->with('ingredients')
+                        ->get();
                     $matchedDishes = $allDishes->filter(function ($dish) use ($tag) {
                         if (empty($dish->allergy_tags)) {
                             return false;

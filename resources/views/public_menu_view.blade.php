@@ -35,7 +35,6 @@
 
             <div class="flex gap-4 overflow-x-auto pb-4">
 
-                // Suất thường
                 @php
                     $normalDishes = $menu->dishes->where('pivot.meal_type', 'normal');
                 @endphp
@@ -69,7 +68,6 @@
                 @endif
 
 
-                // Suất chay
                 @php
                     $vegDishes = $menu->dishes->where('pivot.meal_type', 'vegetarian');
                 @endphp
@@ -104,8 +102,6 @@
 
                 @endif
 
-
-                // Nhóm dị ứng
                 @if(!empty($menu->allergy_notes))
 
                     @foreach($menu->allergy_notes as $index => $group)
@@ -157,7 +153,6 @@
 
         </div>
 
-        // Phần ghi chú
         @if($menu->allergy_servings > 0)
 
             <div class="px-4 pb-6">

@@ -9,6 +9,7 @@ use App\Models\TargetAudience;
 use App\Models\Dish;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class DailyMenuController extends Controller
 {
@@ -64,6 +65,13 @@ class DailyMenuController extends Controller
             'dishes.*.quantity' => 'required|integer|min:1',
             'dishes.*.meal_type' => 'required|string'
         ]);
+
+        if ($this->isMenuLocked($data['date'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Thực đơn đã được chốt từ 17:00 ngày hôm trước, không thể chỉnh sửa.'
+            ], 403);
+        }
 
         // Kiểm tra Dị ứng 
         if (($data['allergy_servings'] ?? 0) > 0 && !empty($data['allergy_notes'])) {
@@ -369,5 +377,14 @@ class DailyMenuController extends Controller
                 ]
             ]);
         }
+    }
+
+    private function isMenuLocked($menuDate)
+    {
+        $lockTime = Carbon::parse($menuDate)
+            ->subDay()
+            ->setTime(17, 0, 0);
+
+        return now()->greaterThanOrEqualTo($lockTime);
     }
 }
