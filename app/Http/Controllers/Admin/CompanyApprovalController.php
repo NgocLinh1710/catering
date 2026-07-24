@@ -26,6 +26,10 @@ class CompanyApprovalController extends Controller
 
     public function approve($id)
     {
+        return response()->json([
+            'step' => '1'
+        ]);
+
         $company = CompanyRegistration::find($id);
 
         if (!$company || $company->status !== 'pending') {
@@ -56,9 +60,10 @@ class CompanyApprovalController extends Controller
             ]);
 
             try {
-                Mail::to($user->email)->send(
-                    new CompanyApprovedMail($user, $randomPassword)
-                );
+                Mail::raw('Test mail', function ($message) use ($user) {
+                    $message->to($user->email)
+                        ->subject('Test');
+                });
             } catch (\Throwable $e) {
 
                 DB::rollBack();
