@@ -57,26 +57,11 @@ class CompanyApprovalController extends Controller
             ]);
 
             try {
-                $fp = @fsockopen("smtp.gmail.com", 587, $errno, $errstr, 10);
 
-                if (!$fp) {
-                    return response()->json([
-                        'smtp' => 'failed',
-                        'errno' => $errno,
-                        'error' => $errstr,
-                    ]);
-                }
+                Mail::to($user->email)->send(
+                    new CompanyApprovedMail($user, $randomPassword)
+                );
 
-                fclose($fp);
-
-                return response()->json([
-                    'smtp' => 'connected'
-                ]);
-
-                Mail::raw('Test mail', function ($message) use ($user) {
-                    $message->to($user->email)
-                        ->subject('Test');
-                });
             } catch (\Throwable $e) {
 
                 DB::rollBack();
@@ -86,7 +71,6 @@ class CompanyApprovalController extends Controller
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString(),
                 ], 500);
             }
 
