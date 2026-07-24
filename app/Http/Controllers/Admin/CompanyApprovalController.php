@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\CompanyApprovedMail;
+use Illuminate\Support\Facades\DB;
 
 class CompanyApprovalController extends Controller
 {
@@ -60,14 +61,15 @@ class CompanyApprovalController extends Controller
                 );
             } catch (\Throwable $e) {
 
-                \Log::error('MAIL SEND FAILED', [
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'error',
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
                     'trace' => $e->getTraceAsString(),
-                ]);
-
-                throw $e;
+                ], 500);
             }
 
             $company->status = 'active';
