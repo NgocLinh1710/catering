@@ -43,11 +43,12 @@ class CompanyApprovalController extends Controller
                 ->where('status', 'rejected')
                 ->delete();
 
-            return response()->json([
-                'step' => '2'
-            ]);
 
             $randomPassword = Str::random(8);
+
+            return response()->json([
+                'step' => '3'
+            ]);
 
             $user = User::create([
                 'name' => $company->contact_person,
