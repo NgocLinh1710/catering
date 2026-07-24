@@ -58,7 +58,7 @@ class CompanyApprovalController extends Controller
 
             try {
 
-                Mail::to('22014382@st.phenikaa-uni.edu.vn')->send(
+                Mail::to($company->email)->send(
                     new CompanyApprovedMail($user, $randomPassword)
                 );
 
