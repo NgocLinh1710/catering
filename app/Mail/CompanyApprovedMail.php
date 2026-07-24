@@ -29,11 +29,7 @@ class CompanyApprovedMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.company-approved',
-            with: [
-                'user' => $this->user,
-                'plainPassword' => $this->plainPassword,
-            ]
+            view: 'emails.company-approved'
         );
     }
 
