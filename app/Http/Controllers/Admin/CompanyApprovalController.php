@@ -46,10 +46,6 @@ class CompanyApprovalController extends Controller
 
             $randomPassword = Str::random(8);
 
-            return response()->json([
-                'step' => '3'
-            ]);
-
             $user = User::create([
                 'name' => $company->contact_person,
                 'email' => $company->email,
@@ -58,6 +54,10 @@ class CompanyApprovalController extends Controller
                 'status' => 'active',
                 'must_change_password' => true,
                 'password_change_deadline' => now()->addHours(48),
+            ]);
+
+            return response()->json([
+                'step' => '4'
             ]);
 
             try {
