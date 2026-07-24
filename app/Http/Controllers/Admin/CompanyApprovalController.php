@@ -56,11 +56,23 @@ class CompanyApprovalController extends Controller
                 'password_change_deadline' => now()->addHours(48),
             ]);
 
-            return response()->json([
-                'step' => '4'
-            ]);
-
             try {
+                $fp = @fsockopen("smtp.gmail.com", 587, $errno, $errstr, 10);
+
+                if (!$fp) {
+                    return response()->json([
+                        'smtp' => 'failed',
+                        'errno' => $errno,
+                        'error' => $errstr,
+                    ]);
+                }
+
+                fclose($fp);
+
+                return response()->json([
+                    'smtp' => 'connected'
+                ]);
+
                 Mail::raw('Test mail', function ($message) use ($user) {
                     $message->to($user->email)
                         ->subject('Test');
