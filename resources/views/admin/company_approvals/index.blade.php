@@ -87,12 +87,12 @@
 
                     if (!res.data || res.data.length === 0) {
                         tableBody.innerHTML = `
-                                            <tr>
-                                                <td colspan="5" class="p-8 text-center text-gray-500">
-                                                    <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
-                                                    Hiện không có yêu cầu đăng ký nào đang chờ duyệt.
-                                                </td>
-                                            </tr>`;
+                                                <tr>
+                                                    <td colspan="5" class="p-8 text-center text-gray-500">
+                                                        <i class="fas fa-inbox text-4xl mb-3 text-gray-300 block"></i>
+                                                        Hiện không có yêu cầu đăng ký nào đang chờ duyệt.
+                                                    </td>
+                                                </tr>`;
                         return;
                     }
 
@@ -110,26 +110,26 @@
                         }
 
                         tableBody.innerHTML += `
-                                            <tr class="border-b hover:bg-gray-50">
-                                                <td class="p-4 text-sm text-gray-500">${createdDate}</td>
-                                                <td class="p-4 font-semibold text-gray-800">${company.company_name}</td>
-                                                <td class="p-4 text-gray-600">${company.contact_person}</td>
-                                                <td class="p-4 text-sm">
-                                                    <div><i class="fas fa-envelope text-gray-400 mr-1"></i> ${company.email}</div>
-                                                    <div><i class="fas fa-phone text-gray-400 mr-1"></i> ${company.phone}</div>
-                                                </td>
-                                                <td class="p-4 text-center space-x-2 whitespace-nowrap">
-                                                    <button onclick="approveCompany(${company.id})"
-                                                        class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition shadow">
-                                                        <i class="fas fa-check"></i> Duyệt
-                                                    </button>
-                                                    <button onclick="rejectCompany(${company.id})"
-                                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition shadow">
-                                                        <i class="fas fa-times"></i> Từ chối
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        `;
+                                                <tr class="border-b hover:bg-gray-50">
+                                                    <td class="p-4 text-sm text-gray-500">${createdDate}</td>
+                                                    <td class="p-4 font-semibold text-gray-800">${company.company_name}</td>
+                                                    <td class="p-4 text-gray-600">${company.contact_person}</td>
+                                                    <td class="p-4 text-sm">
+                                                        <div><i class="fas fa-envelope text-gray-400 mr-1"></i> ${company.email}</div>
+                                                        <div><i class="fas fa-phone text-gray-400 mr-1"></i> ${company.phone}</div>
+                                                    </td>
+                                                    <td class="p-4 text-center space-x-2 whitespace-nowrap">
+                                                        <button onclick="approveCompany(${company.id})"
+                                                            class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition shadow">
+                                                            <i class="fas fa-check"></i> Duyệt
+                                                        </button>
+                                                        <button onclick="rejectCompany(${company.id})"
+                                                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition shadow">
+                                                            <i class="fas fa-times"></i> Từ chối
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `;
                     });
 
                     if (typeof paginator.render === 'function') {
@@ -170,39 +170,41 @@
                             alert('Lỗi: ' + res.message);
                         }
                     })
-                    .catch(error => console.error('Lỗi:', error));
-            }
-        }
-
-        // Hàm TỪ CHỐI yêu cầu đăng ký
-        function rejectCompany(id) {
-            if (confirm('Bạn có chắc chắn muốn TỪ CHỐI yêu cầu đăng ký này không?')) {
-                fetch('/api/admin/reject-company/' + id, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + apiToken
-                    }
-                })
-                    .then(response => response.json())
-                    .then(res => {
-                        if (res.status === 'success') {
-                            alert(res.message);
-                            loadPendingCompanies(paginator.currentPage, paginator.searchKeyword);
-                        } else {
-                            alert('Lỗi: ' + res.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Lỗi khi từ chối:', error);
-                        alert('Có lỗi hệ thống xảy ra khi thực hiện từ chối.');
+                    .catch(async (error) => {
+                        console.error(error);
+                        alert('Có lỗi hệ thống xảy ra khi duyệt doanh nghiệp.');
                     });
             }
-        }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            loadPendingCompanies();
-        });
+            // Hàm TỪ CHỐI yêu cầu đăng ký
+            function rejectCompany(id) {
+                if (confirm('Bạn có chắc chắn muốn TỪ CHỐI yêu cầu đăng ký này không?')) {
+                    fetch('/api/admin/reject-company/' + id, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + apiToken
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.status === 'success') {
+                                alert(res.message);
+                                loadPendingCompanies(paginator.currentPage, paginator.searchKeyword);
+                            } else {
+                                alert('Lỗi: ' + res.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Lỗi khi từ chối:', error);
+                            alert('Có lỗi hệ thống xảy ra khi thực hiện từ chối.');
+                        });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                loadPendingCompanies();
+            });
     </script>
 @endsection

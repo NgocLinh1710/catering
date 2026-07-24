@@ -34,50 +34,68 @@ class CompanyApprovalController extends Controller
             ], 400);
         }
 
-        // Xóa tất cả bản ghi rejected cùng email
-        CompanyRegistration::where('email', $company->email)
-            ->where('status', 'rejected')
-            ->delete();
-
-        // Sinh mật khẩu ngẫu nhiên
-        $randomPassword = Str::random(8);
-
-        // Tạo tài khoản doanh nghiệp
-        $user = User::create([
-            'name' => $company->contact_person,
-            'email' => $company->email,
-            'password' => Hash::make($randomPassword),
-            'role' => 'company',
-            'status' => 'active',
-            'must_change_password' => true,
-            'password_change_deadline' => now()->addHours(48),
-        ]);
+        DB::beginTransaction();
 
         try {
-            Mail::to($user->email)->send(
-                new CompanyApprovedMail($user, $randomPassword)
-            );
+
+            CompanyRegistration::where('email', $company->email)
+                ->where('status', 'rejected')
+                ->delete();
+
+            $randomPassword = Str::random(8);
+
+            $user = User::create([
+                'name' => $company->contact_person,
+                'email' => $company->email,
+                'password' => Hash::make($randomPassword),
+                'role' => 'company',
+                'status' => 'active',
+                'must_change_password' => true,
+                'password_change_deadline' => now()->addHours(48),
+            ]);
+
+            try {
+                Mail::to($user->email)->send(
+                    new CompanyApprovedMail($user, $randomPassword)
+                );
+            } catch (\Throwable $e) {
+
+                \Log::error('MAIL SEND FAILED', [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                throw $e;
+            }
+
+            $company->status = 'active';
+            $company->save();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'email' => $company->email,
+                'password' => $randomPassword
+            ]);
+
         } catch (\Throwable $e) {
-            \Log::error('MAIL ERROR', [
+
+            DB::rollBack();
+
+            \Log::error('Approve company failed', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage(),
+                'message' => 'Không thể gửi email phê duyệt: ' . $e->getMessage(),
             ], 500);
         }
-
-        // Chuyển bản ghi hiện tại sang active
-        $company->status = 'active';
-        $company->save();
-
-        return response()->json([
-            'status' => 'success',
-            'email' => $company->email,
-            'password' => $randomPassword
-        ]);
     }
 
     // Hàm từ chối yêu cầu đăng ký
