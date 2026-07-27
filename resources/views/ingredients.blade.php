@@ -111,8 +111,11 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold mb-1 text-gray-700">Giá nhập (VNĐ/kg)</label>
+                <div id="priceInputGroup">
+                    <label class="block text-sm font-semibold mb-1 text-gray-700">
+                        Giá nhập (VNĐ/kg)
+                    </label>
+
                     <input type="number" id="ing_price_per_kg" required placeholder="Nhập giá..."
                         class="w-full border p-2 rounded focus:ring-1 focus:ring-green-400 outline-none">
                 </div>
@@ -212,36 +215,36 @@
                         : '';
 
                     return `
-                                                                    <tr class="border-b hover:bg-gray-50 transition group text-sm">
-                                                                        <td class="p-4">
-                                                                            <div class="flex flex-col">
-                                                                                <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
-                                                                                <div class="mt-1">${tagHtml}</div>
-                                                                                <span class="text-[10px] text-gray-400 font-normal italic mt-1">
-                                                                                    Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
-                                                                                </span>
-                                                                            </div>
-                                                                        </td>
-                                                                        <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
-                                                                        <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
-                                                                        <td class="p-4 text-center font-bold text-gray-800">${i.price_per_kg ? Math.round(i.price_per_kg).toLocaleString() : '0'}đ</td>
-                                                                        <td class="p-4 text-center">
-                                                                            <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.price_per_kg})" 
-                                                                                class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
-                                                                                <i class="fas fa-history"></i>
-                                                                            </button>
-                                                                        </td>
-                                                                        <td class="p-4 text-center">
-                                                                            <div class="flex justify-center space-x-2">
-                                                                                <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
-                                                                                    <i class="fas fa-edit"></i>
-                                                                                </button>
-                                                                                <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
-                                                                                    <i class="fas fa-trash-alt"></i>
-                                                                                </button>
-                                                                            </div>
-                                                                        </td>
-                                                                    </tr>`;
+                                                                                                            <tr class="border-b hover:bg-gray-50 transition group text-sm">
+                                                                                                                <td class="p-4">
+                                                                                                                    <div class="flex flex-col">
+                                                                                                                        <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
+                                                                                                                        <div class="mt-1">${tagHtml}</div>
+                                                                                                                        <span class="text-[10px] text-gray-400 font-normal italic mt-1">
+                                                                                                                            Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
+                                                                                                                        </span>
+                                                                                                                    </div>
+                                                                                                                </td>
+                                                                                                                <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
+                                                                                                                <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
+                                                                                                                <td class="p-4 text-center font-bold text-gray-800">${i.current_price ? Math.round(i.current_price).toLocaleString() : '0'}đ</td>
+                                                                                                                <td class="p-4 text-center">
+                                                                                                                    <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.current_price})" 
+                                                                                                                        class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
+                                                                                                                        <i class="fas fa-history"></i>
+                                                                                                                    </button>
+                                                                                                                </td>
+                                                                                                                <td class="p-4 text-center">
+                                                                                                                    <div class="flex justify-center space-x-2">
+                                                                                                                        <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
+                                                                                                                            <i class="fas fa-edit"></i>
+                                                                                                                        </button>
+                                                                                                                        <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
+                                                                                                                            <i class="fas fa-trash-alt"></i>
+                                                                                                                        </button>
+                                                                                                                    </div>
+                                                                                                                </td>
+                                                                                                            </tr>`;
                 }).join('');
 
                 paginator.render(result.last_page, result.current_page);
@@ -257,21 +260,34 @@
             const form = document.getElementById('ingForm');
             modal.classList.remove('hidden');
 
+            const priceGroup = document.getElementById('priceInputGroup');
+
             if (data) {
                 editId = data.id;
+
                 title.innerHTML = '<i class="fas fa-edit text-blue-500 mr-2"></i>Sửa Nguyên Liệu';
+
                 document.getElementById('ing_name').value = data.name;
                 document.getElementById('ing_calories').value = data.calories;
                 document.getElementById('ing_protein').value = data.protein;
                 document.getElementById('ing_lipid').value = data.lipid || 0;
                 document.getElementById('ing_glucid').value = data.glucid || 0;
                 document.getElementById('ing_fiber').value = data.fiber || 0;
-                document.getElementById('ing_price_per_kg').value = data.price_per_kg;
                 document.getElementById('ing_tags').value = data.tags ? data.tags.join(', ') : '';
+
+                // Khi sửa thì ẩn ô giá
+                priceGroup.classList.add('hidden');
+
             } else {
+
                 editId = null;
+
                 title.innerHTML = '<i class="fas fa-leaf text-green-500 mr-2"></i>Thêm Nguyên Liệu';
+
                 form.reset();
+
+                // Khi thêm thì hiện ô giá
+                priceGroup.classList.remove('hidden');
             }
         }
 
@@ -289,10 +305,14 @@
                 lipid: parseFloat(document.getElementById('ing_lipid').value) || 0,
                 glucid: parseFloat(document.getElementById('ing_glucid').value) || 0,
                 fiber: parseFloat(document.getElementById('ing_fiber').value) || 0,
-                price_per_kg: parseFloat(document.getElementById('ing_price_per_kg').value) || 0,
                 tags: document.getElementById('ing_tags').value.split(',').map(t => t.trim()).filter(t => t !== ""),
                 unit: 'kg'
             };
+
+            if (!editId) {
+                payload.price_per_kg =
+                    parseFloat(document.getElementById('ing_price_per_kg').value) || 0;
+            }
 
             const method = editId ? 'PUT' : 'POST';
             const url = editId ? `/api/ingredients/${editId}` : '/api/ingredients';
@@ -308,7 +328,7 @@
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
-                    alert('Cập nhật nguyên liệu thành công!');
+                    alert(editId ? 'Cập nhật nguyên liệu thành công!' : 'Thêm nguyên liệu thành công!');
                     closeIngModal();
                     loadData(paginator.currentPage, paginator.searchKeyword);
                 } else {
@@ -323,7 +343,7 @@
             document.getElementById('price_ing_id').value = id;
             document.getElementById('price_ing_name').value = name;
             document.getElementById('new_price').value = Math.round(currentPrice);
-            document.getElementById('applied_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('applied_date').value = new Date().toLocaleDateString('en-CA');
             document.getElementById('priceModal').classList.remove('hidden');
         }
 
@@ -333,25 +353,49 @@
 
         document.getElementById('priceForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+
             const payload = {
                 ingredient_id: document.getElementById('price_ing_id').value,
                 price: parseFloat(document.getElementById('new_price').value),
                 applied_date: document.getElementById('applied_date').value
             };
-            const res = await fetch('/api/ingredients/update-price', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-                alert("Đã cập nhật giá mới!");
-                closePriceModal();
-                loadData(paginator.currentPage, paginator.searchKeyword);
-            } else { alert("Lỗi cập nhật giá!"); }
+
+            console.log("PAYLOAD GỬI:", payload);
+
+            try {
+                const res = await fetch('/api/ingredients/update-price', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                console.log("SERVER TRẢ:", data);
+
+                if (res.ok) {
+                    alert(data.message);
+                    closePriceModal();
+                    loadData(
+                        paginator.currentPage,
+                        paginator.searchKeyword
+                    );
+
+                } else {
+                    alert(
+                        "Lỗi server: " +
+                        JSON.stringify(data)
+                    );
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi kết nối API");
+            }
+
         });
 
         async function deleteIng(id) {

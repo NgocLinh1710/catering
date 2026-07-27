@@ -32,7 +32,7 @@
                 <tr class="bg-gray-50 text-gray-600 border-b text-sm uppercase">
                     <th class="p-4">Tên Khách hàng</th>
                     <th class="p-4">Địa Chỉ</th>
-                    <th class="p-4 text-center">Tổng chi tiêu (VNĐ)</th>
+                    <th class="p-4 text-center">Ngân sách / Thực tế</th>
                     <th class="p-4">Nhân sự quản lý</th>
                     <th class="p-4 text-center">Thao tác</th>
                 </tr>
@@ -161,41 +161,48 @@
                         tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Không tìm thấy khách hàng nào.</td></tr>';
                     } else {
                         res.data.forEach(unit => {
-                            const dynamicConsumption = unit.total_consumption ?? 0;
+                            const budgetConsumption = unit.total_consumption ?? 0;
+                            const actualConsumption = unit.actual_consumption ?? 0;
                             const isInactive = unit.status === 'inactive';
 
                             const employeesList = unit.employees || [];
                             const assignedEmployeeIds = employeesList.map(e => e.id);
 
                             tbody.innerHTML += `
-                                                            <tr class="border-b hover:bg-gray-50 ${isInactive ? 'bg-gray-100' : ''}">
-                                                                <td class="p-4 font-semibold ${isInactive ? 'text-gray-400' : 'text-gray-800'}">
-                                                                    ${unit.name} ${isInactive ? '<span class="text-xs font-normal text-red-500">(Ngừng hợp tác)</span>' : ''}
-                                                                </td>
-                                                                <td class="p-4 ${isInactive ? 'text-gray-400' : 'text-gray-600'}">${unit.address || 'N/A'}</td>
-                                                                <td class="p-4 text-center font-bold ${isInactive ? 'text-gray-400' : 'text-blue-600'}">
-                                                                    ${Number(dynamicConsumption).toLocaleString()}đ
-                                                                </td>
-                                                                <td class="p-4">
-                                                                    ${employeesList.map(e => `
-                                                                        <span class="${isInactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'} px-2 py-1 rounded text-xs mr-1">
-                                                                            ${e.name}
-                                                                        </span>`).join('')}
-                                                                </td>
-                                                                <td class="p-4 text-center">
-                                                                    <button onclick="openUnitModal(${unit.id}, '${unit.name}', '${unit.address || ''}', ${JSON.stringify(assignedEmployeeIds)})" 
-                                                                            class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
-                                                                        <i class="fas fa-edit"></i>
-                                                                    </button>
+                                                                                <tr class="border-b hover:bg-gray-50 ${isInactive ? 'bg-gray-100' : ''}">
+                                                                                    <td class="p-4 font-semibold ${isInactive ? 'text-gray-400' : 'text-gray-800'}">
+                                                                                        ${unit.name} ${isInactive ? '<span class="text-xs font-normal text-red-500">(Ngừng hợp tác)</span>' : ''}
+                                                                                    </td>
+                                                                                    <td class="p-4 ${isInactive ? 'text-gray-400' : 'text-gray-600'}">${unit.address || 'N/A'}</td>
+                                                                                    <td class="p-4 text-center">
+        <div class="text-blue-600 font-bold">
+            NS: ${Number(budgetConsumption).toLocaleString()}đ
+        </div>
 
-                                                                    <button onclick="toggleUnitStatus(${unit.id}, '${unit.status}')" 
-                                                                            class="${isInactive ? 'text-green-500' : 'text-orange-500'} hover:opacity-70 transition" 
-                                                                            title="${isInactive ? 'Kích hoạt lại' : 'Ngừng hợp tác'}">
-                                                                        <i class="fas ${isInactive ? 'fa-unlock' : 'fa-ban'}"></i>
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        `;
+        <div class="text-green-600 text-sm">
+            TT: ${Number(actualConsumption).toLocaleString()}đ
+        </div>
+    </td>
+                                                                                    <td class="p-4">
+                                                                                        ${employeesList.map(e => `
+                                                                                            <span class="${isInactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'} px-2 py-1 rounded text-xs mr-1">
+                                                                                                ${e.name}
+                                                                                            </span>`).join('')}
+                                                                                    </td>
+                                                                                    <td class="p-4 text-center">
+                                                                                        <button onclick="openUnitModal(${unit.id}, '${unit.name}', '${unit.address || ''}', ${JSON.stringify(assignedEmployeeIds)})" 
+                                                                                                class="text-blue-500 hover:text-blue-700 mr-3" title="Chỉnh sửa">
+                                                                                            <i class="fas fa-edit"></i>
+                                                                                        </button>
+
+                                                                                        <button onclick="toggleUnitStatus(${unit.id}, '${unit.status}')" 
+                                                                                                class="${isInactive ? 'text-green-500' : 'text-orange-500'} hover:opacity-70 transition" 
+                                                                                                title="${isInactive ? 'Kích hoạt lại' : 'Ngừng hợp tác'}">
+                                                                                            <i class="fas ${isInactive ? 'fa-unlock' : 'fa-ban'}"></i>
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            `;
                         });
                     }
 
@@ -230,16 +237,16 @@
                         const canSelect = !isInactive || isAssigned;
 
                         return `
-                                                        <label class="flex items-center p-1 hover:bg-gray-50 cursor-pointer text-sm ${isInactive ? 'text-red-400' : ''}">
-                                                            <input type="checkbox" name="modal_emp_ids" value="${emp.id}" 
-                                                                ${isAssigned ? 'checked' : ''} 
-                                                                ${!canSelect ? 'disabled' : ''} 
-                                                                class="mr-2 h-4 w-4">
-                                                            <span>
-                                                                ${emp.name} ${isInactive ? '<b class="text-xs">(Tài khoản bị khóa)</b>' : ''}
-                                                            </span>
-                                                        </label>
-                                                    `;
+                                                                            <label class="flex items-center p-1 hover:bg-gray-50 cursor-pointer text-sm ${isInactive ? 'text-red-400' : ''}">
+                                                                                <input type="checkbox" name="modal_emp_ids" value="${emp.id}" 
+                                                                                    ${isAssigned ? 'checked' : ''} 
+                                                                                    ${!canSelect ? 'disabled' : ''} 
+                                                                                    class="mr-2 h-4 w-4">
+                                                                                <span>
+                                                                                    ${emp.name} ${isInactive ? '<b class="text-xs">(Tài khoản bị khóa)</b>' : ''}
+                                                                                </span>
+                                                                            </label>
+                                                                        `;
                     }).join('');
                 });
         }

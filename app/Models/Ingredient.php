@@ -39,16 +39,31 @@ class Ingredient extends Model
         return $this->hasMany(IngredientPrice::class);
     }
 
-    public function getPriceAtDate($date)
+    public function getPriceAtDate($date = null)
     {
-        // Tìm bản ghi giá có ngày áp dụng gần nhất nhưng không vượt quá ngày cần tra cứu
-        $historicalPrice = $this->prices()
-            ->where('applied_date', '<=', $date)
-            ->orderBy('applied_date', 'desc')
-            ->orderBy('id', 'desc')
-            ->first();
+        $date = $date ?: now('Asia/Ho_Chi_Minh')->toDateString();
 
-        // Nếu tìm thấy giá trong lịch sử thì lấy, không thì lấy giá hiện hành (price_per_kg)
-        return $historicalPrice ? $historicalPrice->price : $this->price_per_kg;
+        return $this->prices()
+            ->where('applied_date', '<=', $date)
+            ->orderByDesc('applied_date')
+            ->orderByDesc('id')
+            ->value('price')
+            ?? $this->price_per_kg;
+    }
+
+    public function getCurrentPrice()
+    {
+        return $this->getPriceAtDate(
+            now()
+                ->timezone('Asia/Ho_Chi_Minh')
+                ->format('Y-m-d')
+        );
+    }
+
+    public function priceHistory()
+    {
+        return $this->hasMany(
+            IngredientPrice::class
+        );
     }
 }

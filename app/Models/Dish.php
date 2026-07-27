@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class Dish extends Model
 {
@@ -33,113 +32,114 @@ class Dish extends Model
         'glucid_per_serving',
         'fiber_per_serving',
     ];
+
     protected $casts = [
         'dish_tags' => 'array',
     ];
 
-    // Quan hệ n-n với bảng ingredients
+    // Quan hệ nguyên liệu
     public function ingredients()
     {
-        return $this->belongsToMany(Ingredient::class, 'dish_ingredients')
+        return $this->belongsToMany(
+            Ingredient::class,
+            'dish_ingredients'
+        )
             ->withPivot('weight')
             ->withTimestamps();
     }
 
-    /*
-     TỰ ĐỘNG GOM TAGS DỊ ỨNG
-     Hàm này sẽ quét tất cả nguyên liệu trong món và trả về danh sách tag không trùng lặp.
-     Ví dụ: Món có Tôm (tag: Hải sản) và Đậu phụ (tag: Chay) -> Món sẽ có tags: ['Hải sản', 'Chay']
-     */
+    // Gom tag dị ứng
     public function getAllergyTagsAttribute()
     {
-        return $this->ingredients->pluck('tags')
+        return $this->ingredients
+            ->pluck('tags')
             ->flatten()
             ->unique()
             ->values()
             ->all();
     }
 
+    // Giá vốn / suất
     public function getCostPerServingAttribute()
     {
-        if (($this->servings ?? 1) <= 0) {
+        if (($this->servings ?? 0) <= 0) {
             return 0;
         }
 
-        return round($this->estimated_cost / $this->servings, 2);
+        $date = request()->get('date')
+            ?? now('Asia/Ho_Chi_Minh')
+                ->format('Y-m-d');
+
+        return round(
+            $this->calculateCostAtDate($date)
+            /
+            $this->servings,
+            2
+        );
     }
 
+    // Dinh dưỡng / suất
     public function getCaloriesPerServingAttribute()
     {
-        if (($this->servings ?? 1) <= 0) {
-            return 0;
-        }
-
-        return round($this->total_calories / $this->servings, 2);
+        return $this->servings > 0
+            ? round($this->total_calories / $this->servings, 2)
+            : 0;
     }
 
     public function getProteinPerServingAttribute()
     {
-        if (($this->servings ?? 1) <= 0) {
-            return 0;
-        }
-
-        return round($this->total_protein / $this->servings, 2);
+        return $this->servings > 0
+            ? round($this->total_protein / $this->servings, 2)
+            : 0;
     }
 
     public function getFatPerServingAttribute()
     {
-        if (($this->servings ?? 1) <= 0) {
-            return 0;
-        }
-
-        return round($this->lipid / $this->servings, 1);
+        return $this->servings > 0
+            ? round($this->lipid / $this->servings, 1)
+            : 0;
     }
 
     public function getGlucidPerServingAttribute()
     {
-        if (($this->servings ?? 1) <= 0) {
-            return 0;
-        }
-
-        return round($this->glucid / $this->servings, 1);
+        return $this->servings > 0
+            ? round($this->glucid / $this->servings, 1)
+            : 0;
     }
 
     public function getFiberPerServingAttribute()
     {
-        if (($this->servings ?? 1) <= 0) {
-            return 0;
-        }
-
-        return round($this->fiber / $this->servings, 1);
+        return $this->servings > 0
+            ? round($this->fiber / $this->servings, 1)
+            : 0;
     }
 
-    /*
-     TÍNH GIÁ MÓN ĂN THEO THỜI ĐIỂM
-     @param string|null $date (Định dạng Y-m-d)
-    */
+    // Tính giá món theo ngày
     public function calculateCostAtDate($date = null)
     {
-        $date = $date ?: now()->format('Y-m-d');
+        $date = $date
+            ??
+            now('Asia/Ho_Chi_Minh')
+                ->format('Y-m-d');
+
         $totalCost = 0;
 
         foreach ($this->ingredients as $ingredient) {
-            // Tìm giá nguyên liệu (ưu tiên bảng biến động giá)
-            $priceRecord = DB::table('ingredient_prices')
-                ->where('ingredient_id', $ingredient->id)
-                ->where('applied_date', '<=', $date)
-                ->orderBy('applied_date', 'desc')
-                ->first();
+            // lấy giá lịch sử mới nhất <= ngày chọn
+            $unitPrice = $ingredient
+                ->getPriceAtDate($date);
 
-            $unitPrice = $priceRecord ? $priceRecord->price : $ingredient->price_per_kg;
+            // gram -> kg
+            $weightKg =
+                $ingredient->pivot->weight / 1000;
 
-            $weightInKg = $ingredient->pivot->weight / 1000;
-            $totalCost += ($weightInKg * $unitPrice);
+            $totalCost +=
+                $weightKg * $unitPrice;
         }
-
         return round($totalCost, 2);
     }
 
-    // Tính toán lại dinh dưỡng tổng
+    // Tính lại dinh dưỡng món
     public function recalculateNutrition()
     {
         $calories = 0;
@@ -147,35 +147,51 @@ class Dish extends Model
         $lipid = 0;
         $glucid = 0;
         $fiber = 0;
-
         $this->load('ingredients');
 
         foreach ($this->ingredients as $ingredient) {
-            $weightInKg = $ingredient->pivot->weight / 1000;
+            $weightKg = (float) $ingredient->pivot->weight / 1000;
 
-            $calories += ($ingredient->calories * $weightInKg);
-            $protein += ($ingredient->protein * $weightInKg);
-            $lipid += ($ingredient->lipid * $weightInKg);
-            $glucid += ($ingredient->glucid * $weightInKg);
-            $fiber += ($ingredient->fiber * $weightInKg);
+            $calories += (float) $ingredient->calories * $weightKg;
+
+            $protein += (float) $ingredient->protein * $weightKg;
+            $lipid += (float) $ingredient->lipid * $weightKg;
+            $glucid += (float) $ingredient->glucid * $weightKg;
+            $fiber += (float) $ingredient->fiber * $weightKg;
         }
 
         $this->update([
             'total_calories' => $calories,
             'total_protein' => $protein,
-            'estimated_cost' => $this->calculateCostAtDate(),
             'lipid' => $lipid,
             'glucid' => $glucid,
             'fiber' => $fiber,
+
+            // lưu giá vốn tại thời điểm tạo/sửa
+            'estimated_cost' =>
+                $this->calculateCostAtDate(
+                    now('Asia/Ho_Chi_Minh')
+                        ->format('Y-m-d')
+                ),
+
         ]);
+
     }
 
-    // Quan hệ n-n với bảng daily_menus
+    // Daily menu
 
     public function dailyMenus()
     {
-        return $this->belongsToMany(DailyMenu::class, 'daily_menu_dish', 'dish_id', 'daily_menu_id')
-            ->withPivot('quantity', 'meal_type')
+        return $this->belongsToMany(
+            DailyMenu::class,
+            'daily_menu_dish',
+            'dish_id',
+            'daily_menu_id'
+        )
+            ->withPivot(
+                'quantity',
+                'meal_type'
+            )
             ->withTimestamps();
     }
 }

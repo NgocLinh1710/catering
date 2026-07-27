@@ -14,7 +14,9 @@ class DailyMenu extends Model
         'normal_servings',
         'vegetarian_servings',
         'allergy_servings',
-        'allergy_notes'
+        'allergy_notes',
+        'actual_cost_per_serving',
+        'actual_total_cost',
     ];
 
     protected $casts = [

@@ -29,24 +29,36 @@ class UnitController extends Controller
         // Biến đổi tập hợp dữ liệu để tính toán chi tiêu động cho từng khách hàng
         $units->getCollection()->transform(function ($unit) use ($year, $month) {
             $consumptionQuery = DB::table('daily_menus')
-                ->join('target_audiences', 'target_audiences.id', '=', 'daily_menus.target_audience_id')
+                ->join(
+                    'target_audiences',
+                    'target_audiences.id',
+                    '=',
+                    'daily_menus.target_audience_id'
+                )
                 ->where('daily_menus.unit_id', $unit->id);
 
-            // Lọc theo Năm (nếu có)
             if (!empty($year)) {
                 $consumptionQuery->whereYear('daily_menus.date', $year);
             }
-            // Lọc theo Tháng (nếu có)
+
             if (!empty($month)) {
                 $consumptionQuery->whereMonth('daily_menus.date', $month);
             }
 
-            // Tổng chi tiêu = (số suất thường + số suất chay + số suất dị ứng) * ngân sách định mức mỗi suất
-            $totalConsumption = $consumptionQuery->sum(DB::raw(
-                '(daily_menus.normal_servings + daily_menus.vegetarian_servings + daily_menus.allergy_servings) * target_audiences.budget_per_serving'
-            ));
+            $result = $consumptionQuery->selectRaw("
+    SUM(
+        (daily_menus.normal_servings
+        + daily_menus.vegetarian_servings
+        + daily_menus.allergy_servings)
+        * target_audiences.budget_per_serving
+    ) as budget_total,
 
-            $unit->total_consumption = (float) $totalConsumption;
+    SUM(daily_menus.actual_total_cost) as actual_total
+")->first();
+
+            $unit->total_consumption = (float) ($result->budget_total ?? 0);
+
+            $unit->actual_consumption = (float) ($result->actual_total ?? 0);
 
             return $unit;
         });

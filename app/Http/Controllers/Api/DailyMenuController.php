@@ -132,6 +132,34 @@ class DailyMenuController extends Controller
         }
 
         try {
+            $actualCostPerServing = 0;
+
+            foreach ($data['dishes'] as $item) {
+                $dish = Dish::with('ingredients.prices')
+                    ->findOrFail($item['id']);
+
+                // giá 1 suất món
+                $dishCostPerServing = round(
+                    $dish->calculateCostAtDate($data['date'])
+                    /
+                    max($dish->servings, 1),
+                    2
+                );
+
+                // cộng các món trong 1 suất ăn
+                $actualCostPerServing +=
+                    $dishCostPerServing * $item['quantity'];
+            }
+
+            $actualCostPerServing = round($actualCostPerServing, 2);
+
+            // tổng tiền cả menu
+            $actualTotalCost =
+                round(
+                    $actualCostPerServing * $data['servings'],
+                    2
+                );
+
             DB::beginTransaction();
 
             $menu = DailyMenu::updateOrCreate(
@@ -142,10 +170,16 @@ class DailyMenuController extends Controller
                 [
                     'unit_id' => $data['unit_id'],
                     'servings' => $data['servings'],
+
                     'normal_servings' => $data['normal_servings'] ?? 0,
                     'vegetarian_servings' => $data['vegetarian_servings'] ?? 0,
                     'allergy_servings' => $data['allergy_servings'] ?? 0,
                     'allergy_notes' => $data['allergy_notes'] ?? null,
+
+                    'actual_cost_per_serving' => round($actualCostPerServing, 2),
+                    'actual_total_cost' => round($actualTotalCost, 2),
+
+                    'actual_cost' => round($actualTotalCost, 2),
                 ]
             );
 

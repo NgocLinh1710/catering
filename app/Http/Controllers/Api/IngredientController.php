@@ -25,6 +25,13 @@ class IngredientController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(10);
 
+        $ingredients->getCollection()->transform(function ($ingredient) {
+
+            $ingredient->current_price = $ingredient->getCurrentPrice();
+
+            return $ingredient;
+        });
+
         return response()->json([
             'status' => 'success',
             'data' => $ingredients->items(),
@@ -68,7 +75,9 @@ class IngredientController extends Controller
     public function update(Request $request, $id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
-        $ingredient = Ingredient::where('company_id', $companyId)->findOrFail($id);
+
+        $ingredient = Ingredient::where('company_id', $companyId)
+            ->findOrFail($id);
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -77,28 +86,14 @@ class IngredientController extends Controller
             'lipid' => 'nullable|numeric|min:0',
             'glucid' => 'nullable|numeric|min:0',
             'fiber' => 'nullable|numeric|min:0',
-            'price_per_kg' => 'required|numeric|min:0',
             'tags' => 'nullable|array',
-            'tags.*' => 'string'
+            'tags.*' => 'string',
         ]);
-        return DB::transaction(function () use ($ingredient, $data) {
-            // Kiểm tra nếu giá thay đổi thì mới lưu vào lịch sử
-            if ($ingredient->price_per_kg != $data['price_per_kg']) {
-                IngredientPrice::create([
-                    'ingredient_id' => $ingredient->id,
-                    'price' => $data['price_per_kg'],
-                    'applied_date' => now()->format('Y-m-d'),
-                ]);
-            }
 
-            $ingredient->update($data);
-            return response()->json($ingredient);
-        });
+        $ingredient->update($data);
+        return response()->json($ingredient);
     }
 
-    /**
-     * API chuyên dụng để cập nhật giá theo định kỳ (Tuần/Tháng)
-     */
     public function updatePrice(Request $request)
     {
         $request->validate([
@@ -108,24 +103,38 @@ class IngredientController extends Controller
         ]);
 
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
+
         $ingredient = Ingredient::where('company_id', $companyId)
             ->findOrFail($request->ingredient_id);
 
+
         return DB::transaction(function () use ($request, $ingredient) {
+
+
             // Lưu lịch sử giá
-            IngredientPrice::create([
+            $history = IngredientPrice::create([
                 'ingredient_id' => $ingredient->id,
                 'price' => $request->price,
-                'applied_date' => $request->applied_date
+                'applied_date' => $request->applied_date,
             ]);
 
-            // Cập nhật giá hiện hành
-            $ingredient->update(['price_per_kg' => $request->price]);
+
+            // Chỉ cập nhật giá hiện tại nếu ngày áp dụng <= hôm nay
+            if ($request->applied_date <= now('Asia/Ho_Chi_Minh')->toDateString()) {
+
+                $ingredient->update([
+                    'price_per_kg' => $request->price
+                ]);
+
+            }
+
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cập nhật giá thời vụ thành công!'
+                'message' => 'Lưu lịch sử giá thành công!',
+                'inserted' => $history
             ]);
+
         });
     }
 
@@ -136,6 +145,11 @@ class IngredientController extends Controller
         $ingredients = Ingredient::where('company_id', $companyId)
             ->orderBy('name')
             ->get();
+
+        $ingredients->transform(function ($ingredient) {
+            $ingredient->current_price = $ingredient->getCurrentPrice();
+            return $ingredient;
+        });
 
         return response()->json([
             'status' => 'success',
