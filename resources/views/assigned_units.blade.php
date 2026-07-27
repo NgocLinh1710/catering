@@ -35,7 +35,6 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12">
 
-                // Sidebar
                 <div class="lg:col-span-4 border-r bg-gray-50/70 p-5 flex flex-col h-[78vh]">
 
                     <div class="flex items-center justify-between mb-4">
@@ -59,7 +58,6 @@
                     </button>
                 </div>
 
-                // Form
                 <div class="lg:col-span-8 p-6 overflow-y-auto max-h-[78vh]">
 
                     <div id="no-selection-msg" class="h-full flex flex-col items-center justify-center py-24 text-center">
@@ -114,7 +112,6 @@
                                 </div>
                             </div>
 
-                            // Dinh dưỡng
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                                 <div>
@@ -278,58 +275,58 @@
 
                 if (!units || units.length === 0) {
                     container.innerHTML = `
-                                                                                        <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-gray-400">
-                                                                                            Chưa có đơn vị nào được phân công.
-                                                                                        </div>
-                                                                                    `;
+                                                                                                <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-gray-400">
+                                                                                                    Chưa có đơn vị nào được phân công.
+                                                                                                </div>
+                                                                                            `;
                     return;
                 }
 
                 container.innerHTML = units.map(unit => `
-                                                                                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition p-6">
-                                                                                        <div class="flex items-start justify-between mb-5">
-                                                                                            <div class="h-16 w-16 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center">
-                                                                                                <i class="fas fa-school text-3xl"></i>
+                                                                                            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition p-6">
+                                                                                                <div class="flex items-start justify-between mb-5">
+                                                                                                    <div class="h-16 w-16 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center">
+                                                                                                        <i class="fas fa-school text-3xl"></i>
+                                                                                                    </div>
+                                                                                                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black">
+                                                                                                        Đang quản lý
+                                                                                                    </span>
+                                                                                                </div>
+
+                                                                                                <h3 class="text-xl font-black text-gray-800 mb-2">
+                                                                                                    ${unit.name}
+                                                                                                </h3>
+
+                                                                                                <p class="text-sm text-gray-500 mb-6">
+                                                                                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                                                                                    ${unit.address || 'Chưa cập nhật địa chỉ'}
+                                                                                                </p>
+
+                                                                                                <div class="grid grid-cols-2 gap-3">
+                                                                                                    <button
+                                                                                                        onclick="openAudienceModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
+                                                                                                        class="py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 transition font-bold text-gray-700">
+                                                                                                        <i class="fas fa-cog mr-2"></i>
+                                                                                                        Định mức
+                                                                                                    </button>
+
+                                                                                                    <button
+                                                                                                        onclick="openMenuSelectionModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
+                                                                                                        class="py-3 rounded-2xl bg-green-500 hover:bg-green-600 transition font-black text-white shadow">
+                                                                                                        <i class="fas fa-utensils mr-2"></i>
+                                                                                                        Thực đơn
+                                                                                                    </button>
+                                                                                                </div>
                                                                                             </div>
-                                                                                            <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black">
-                                                                                                Đang quản lý
-                                                                                            </span>
-                                                                                        </div>
-
-                                                                                        <h3 class="text-xl font-black text-gray-800 mb-2">
-                                                                                            ${unit.name}
-                                                                                        </h3>
-
-                                                                                        <p class="text-sm text-gray-500 mb-6">
-                                                                                            <i class="fas fa-map-marker-alt mr-1"></i>
-                                                                                            ${unit.address || 'Chưa cập nhật địa chỉ'}
-                                                                                        </p>
-
-                                                                                        <div class="grid grid-cols-2 gap-3">
-                                                                                            <button
-                                                                                                onclick="openAudienceModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
-                                                                                                class="py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 transition font-bold text-gray-700">
-                                                                                                <i class="fas fa-cog mr-2"></i>
-                                                                                                Định mức
-                                                                                            </button>
-
-                                                                                            <button
-                                                                                                onclick="openMenuSelectionModal(${unit.id}, '${unit.name.replace(/'/g, "\\'")}')"
-                                                                                                class="py-3 rounded-2xl bg-green-500 hover:bg-green-600 transition font-black text-white shadow">
-                                                                                                <i class="fas fa-utensils mr-2"></i>
-                                                                                                Thực đơn
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                `).join('');
+                                                                                        `).join('');
 
             } catch (e) {
                 console.error(e);
                 document.getElementById('unit-list').innerHTML = `
-                                                                                    <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-red-500">
-                                                                                        Không thể tải dữ liệu từ máy chủ.
-                                                                                    </div>
-                                                                                `;
+                                                                                            <div class="col-span-full bg-white rounded-3xl border p-10 text-center text-red-500">
+                                                                                                Không thể tải dữ liệu từ máy chủ.
+                                                                                            </div>
+                                                                                        `;
             }
         }
 
@@ -356,30 +353,30 @@
 
                 if (currentAudiences.length === 0) {
                     list.innerHTML = `
-                                                                                        <div class="text-center text-gray-400 italic py-8">
-                                                                                            Chưa có nhóm nào
-                                                                                        </div>
-                                                                                    `;
+                                                                                                <div class="text-center text-gray-400 italic py-8">
+                                                                                                    Chưa có nhóm nào
+                                                                                                </div>
+                                                                                            `;
                 } else {
                     list.innerHTML = currentAudiences.map(a => `
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onclick="editAudience(${a.id})"
-                                                                                            class="w-full text-left p-4 rounded-2xl border border-gray-200 hover:border-green-400 hover:bg-green-50 transition group">
-                                                                                            <div class="flex items-center justify-between">
-                                                                                                <div>
-                                                                                                    <div class="font-black text-gray-800 text-sm">
-                                                                                                        ${a.name}
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onclick="editAudience(${a.id})"
+                                                                                                    class="w-full text-left p-4 rounded-2xl border border-gray-200 hover:border-green-400 hover:bg-green-50 transition group">
+                                                                                                    <div class="flex items-center justify-between">
+                                                                                                        <div>
+                                                                                                            <div class="font-black text-gray-800 text-sm">
+                                                                                                                ${a.name}
+                                                                                                            </div>
+                                                                                                            <div class="text-xs text-gray-400 mt-1">
+                                                                                                                ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
+                                                                                                                ${a.target_calories || 0} Kcal
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500"></i>
                                                                                                     </div>
-                                                                                                    <div class="text-xs text-gray-400 mt-1">
-                                                                                                        ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
-                                                                                                        ${a.target_calories || 0} Kcal
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500"></i>
-                                                                                            </div>
-                                                                                        </button>
-                                                                                    `).join('');
+                                                                                                </button>
+                                                                                            `).join('');
                 }
 
                 hideForm();
@@ -544,39 +541,39 @@
 
                 if (audiences.length === 0) {
                     containerEl.innerHTML = `
-                                                                                        <div class="text-center py-10 text-gray-400">
-                                                                                            Chưa có nhóm đối tượng nào.
-                                                                                        </div>
-                                                                                    `;
+                                                                                                <div class="text-center py-10 text-gray-400">
+                                                                                                    Chưa có nhóm đối tượng nào.
+                                                                                                </div>
+                                                                                            `;
                 } else {
                     containerEl.innerHTML = audiences.map(a => `
-                                                                                        <button
-                                                                                            onclick="redirectToPlanner(${unitId}, ${a.id})"
-                                                                                            class="w-full text-left p-4 rounded-2xl border border-gray-100 hover:border-green-300 hover:bg-green-50 transition group">
-                                                                                            <div class="flex items-center justify-between">
-                                                                                                <div>
-                                                                                                    <div class="font-black text-gray-800 text-sm">
-                                                                                                        ${a.name}
+                                                                                                <button
+                                                                                                    onclick="redirectToPlanner(${unitId}, ${a.id})"
+                                                                                                    class="w-full text-left p-4 rounded-2xl border border-gray-100 hover:border-green-300 hover:bg-green-50 transition group">
+                                                                                                    <div class="flex items-center justify-between">
+                                                                                                        <div>
+                                                                                                            <div class="font-black text-gray-800 text-sm">
+                                                                                                                ${a.name}
+                                                                                                            </div>
+                                                                                                            <div class="text-xs text-gray-400 mt-1">
+                                                                                                                ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
+                                                                                                                ${a.target_calories || 0} Kcal
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        <div class="h-9 w-9 rounded-full bg-white border flex items-center justify-center text-gray-400 group-hover:bg-green-500 group-hover:text-white transition">
+                                                                                                            <i class="fas fa-arrow-right text-xs"></i>
+                                                                                                        </div>
                                                                                                     </div>
-                                                                                                    <div class="text-xs text-gray-400 mt-1">
-                                                                                                        ${parseFloat(a.budget_per_serving || 0).toLocaleString()}đ ·
-                                                                                                        ${a.target_calories || 0} Kcal
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div class="h-9 w-9 rounded-full bg-white border flex items-center justify-center text-gray-400 group-hover:bg-green-500 group-hover:text-white transition">
-                                                                                                    <i class="fas fa-arrow-right text-xs"></i>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </button>
-                                                                                    `).join('');
+                                                                                                </button>
+                                                                                            `).join('');
                 }
             } catch (e) {
                 console.error(e);
                 loadingEl.innerHTML = `
-                                                                                    <div class="text-center text-red-500 text-sm py-10">
-                                                                                        Không thể tải dữ liệu nhóm đối tượng
-                                                                                    </div>
-                                                                                `;
+                                                                                            <div class="text-center text-red-500 text-sm py-10">
+                                                                                                Không thể tải dữ liệu nhóm đối tượng
+                                                                                            </div>
+                                                                                        `;
             }
         }
 
