@@ -266,10 +266,21 @@ class DailyMenuController extends Controller
         file_put_contents($tempInputFile, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
         $scriptPath = base_path('optimizer.py');
-        $pythonPath = "C:\\Users\\ngocl\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
 
-        $command = "\"{$pythonPath}\" \"{$scriptPath}\" \"{$tempInputFile}\" 2>&1";
+        if (app()->environment('local')) {
+            $python = "C:\\Users\\ngocl\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
+        } else {
+            $python = "python3";
+        }
+
+        $command = "{$python} " .
+            escapeshellarg($scriptPath) . " " .
+            escapeshellarg($tempInputFile) .
+            " 2>&1";
+
         $output = shell_exec($command);
+        \Log::info($command);
+        \Log::info($output);
 
         if (file_exists($tempInputFile)) {
             @unlink($tempInputFile);

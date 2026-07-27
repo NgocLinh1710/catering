@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     python3 \
     python3-pip \
-    python3-venv
+    python3-venv \
+    coinor-cbc
 
 # Xóa cache hệ thống để giảm dung lượng
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -45,4 +46,4 @@ COPY .nginx/nginx.conf /etc/nginx/sites-available/default
 # LỆNH KHỞI CHẠY (QUAN TRỌNG): 
 # Chúng ta đưa các lệnh xóa cache vào đây. Khi container khởi chạy thật trên Render, 
 # lúc này đã có đủ Database và biến môi trường, lệnh chạy sẽ mượt mà 100%!
-CMD php artisan config:clear && php artisan cache:clear && service nginx start && php-fpm
+CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force && service nginx start && php-fpm
