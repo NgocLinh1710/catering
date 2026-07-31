@@ -161,31 +161,51 @@ class IngredientController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
 
         $ingredient = Ingredient::where('company_id', $companyId)
+            ->with('dishes')
             ->findOrFail($id);
 
-        // Không cho xóa nếu nguyên liệu đang được dùng
-        if ($ingredient->dishes()->exists()) {
+        $forceDelete = $request->boolean('force');
 
-            $dishNames = $ingredient->dishes()
-                ->pluck('name')
-                ->implode(', ');
+        // Nếu nguyên liệu đang được dùng và chưa xác nhận xóa
+        if ($ingredient->dishes->count() > 0 && !$forceDelete) {
 
             return response()->json([
-                'status' => 'error',
-                'message' => "Không thể xóa nguyên liệu vì đang được sử dụng trong các món: {$dishNames}"
-            ], 422);
+                'status' => 'confirm',
+                'message' => 'Nguyên liệu đang được sử dụng.',
+                'dishes' => $ingredient->dishes->pluck('name')
+            ]);
         }
 
-        $ingredient->delete();
+        DB::transaction(function () use ($ingredient) {
+
+            foreach ($ingredient->dishes as $dish) {
+
+                // bỏ khỏi thực đơn
+                $dish->dailyMenus()->detach();
+
+                // bỏ toàn bộ nguyên liệu của món
+                $dish->ingredients()->detach();
+
+                // xóa món
+                $dish->delete();
+            }
+
+            // xóa lịch sử giá
+            $ingredient->prices()->delete();
+
+            // xóa nguyên liệu
+            $ingredient->delete();
+
+        });
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Xóa nguyên liệu thành công.'
+            'message' => 'Đã xóa nguyên liệu và toàn bộ món ăn liên quan.'
         ]);
     }
 }
