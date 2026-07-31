@@ -83,12 +83,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold mb-1 text-gray-700">Calories (Kcal)</label>
-                        <input type="number" step="0.1" id="ing_calories" required placeholder="0.0"
+                        <input type="number" min="0" step="0.1" id="ing_calories" required placeholder="0.0"
                             class="w-full border p-2 rounded focus:ring-1 focus:ring-green-400 outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold mb-1 text-gray-700">Protein (g)</label>
-                        <input type="number" step="0.1" id="ing_protein" required placeholder="0.0"
+                        <input type="number" min="0" step="0.1" id="ing_protein" required placeholder="0.0"
                             class="w-full border p-2 rounded focus:ring-1 focus:ring-green-400 outline-none">
                     </div>
                 </div>
@@ -96,17 +96,17 @@
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs font-semibold mb-1 text-gray-700">Lipid/Béo (g)</label>
-                        <input type="number" step="0.1" id="ing_lipid" placeholder="0.0"
+                        <input type="number" min="0" step="0.1" id="ing_lipid" placeholder="0.0"
                             class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-green-400 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold mb-1 text-gray-700">Glucid/Bột (g)</label>
-                        <input type="number" step="0.1" id="ing_glucid" placeholder="0.0"
+                        <input type="number" min="0" step="0.1" id="ing_glucid" placeholder="0.0"
                             class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-green-400 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold mb-1 text-gray-700">Chất xơ (g)</label>
-                        <input type="number" step="0.1" id="ing_fiber" placeholder="0.0"
+                        <input type="number" min="0" step="0.1" id="ing_fiber" placeholder="0.0"
                             class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-green-400 outline-none">
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                         Giá nhập (VNĐ/kg)
                     </label>
 
-                    <input type="number" id="ing_price_per_kg" required placeholder="Nhập giá..."
+                    <input type="number" min="0" id="ing_price_per_kg" required placeholder="Nhập giá..."
                         class="w-full border p-2 rounded focus:ring-1 focus:ring-green-400 outline-none">
                 </div>
 
@@ -148,7 +148,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold mb-1 text-gray-700">Giá mới (VNĐ/kg)</label>
-                    <input type="number" id="new_price" required
+                    <input type="number" min="0" id="new_price" required
                         class="w-full border p-2 rounded focus:ring-2 focus:ring-green-400 outline-none">
                 </div>
                 <div>
@@ -215,36 +215,36 @@
                         : '';
 
                     return `
-                                                                                                                    <tr class="border-b hover:bg-gray-50 transition group text-sm">
-                                                                                                                        <td class="p-4">
-                                                                                                                            <div class="flex flex-col">
-                                                                                                                                <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
-                                                                                                                                <div class="mt-1">${tagHtml}</div>
-                                                                                                                                <span class="text-[10px] text-gray-400 font-normal italic mt-1">
-                                                                                                                                    Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
-                                                                                                                                </span>
-                                                                                                                            </div>
-                                                                                                                        </td>
-                                                                                                                        <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
-                                                                                                                        <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
-                                                                                                                        <td class="p-4 text-center font-bold text-gray-800">${i.current_price ? Math.round(i.current_price).toLocaleString() : '0'}đ</td>
-                                                                                                                        <td class="p-4 text-center">
-                                                                                                                            <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.current_price})" 
-                                                                                                                                class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
-                                                                                                                                <i class="fas fa-history"></i>
-                                                                                                                            </button>
-                                                                                                                        </td>
-                                                                                                                        <td class="p-4 text-center">
-                                                                                                                            <div class="flex justify-center space-x-2">
-                                                                                                                                <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
-                                                                                                                                    <i class="fas fa-edit"></i>
-                                                                                                                                </button>
-                                                                                                                                <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
-                                                                                                                                    <i class="fas fa-trash-alt"></i>
-                                                                                                                                </button>
-                                                                                                                            </div>
-                                                                                                                        </td>
-                                                                                                                    </tr>`;
+                                                                                                                                    <tr class="border-b hover:bg-gray-50 transition group text-sm">
+                                                                                                                                        <td class="p-4">
+                                                                                                                                            <div class="flex flex-col">
+                                                                                                                                                <span class="font-bold text-gray-700"><i class="fas fa-carrot text-orange-400 mr-2"></i>${i.name}</span>
+                                                                                                                                                <div class="mt-1">${tagHtml}</div>
+                                                                                                                                                <span class="text-[10px] text-gray-400 font-normal italic mt-1">
+                                                                                                                                                    Béo: ${parseFloat(i.lipid || 0)}g | Đường: ${parseFloat(i.glucid || 0)}g | Xơ: ${parseFloat(i.fiber || 0)}g
+                                                                                                                                                </span>
+                                                                                                                                            </div>
+                                                                                                                                        </td>
+                                                                                                                                        <td class="p-4 text-center font-mono text-orange-600 font-bold">${parseFloat(i.calories).toLocaleString()}</td>
+                                                                                                                                        <td class="p-4 text-center text-blue-600 font-medium">${parseFloat(i.protein).toLocaleString()}g</td>
+                                                                                                                                        <td class="p-4 text-center font-bold text-gray-800">${i.current_price ? Math.round(i.current_price).toLocaleString() : '0'}đ</td>
+                                                                                                                                        <td class="p-4 text-center">
+                                                                                                                                            <button onclick="openPriceModal(${i.id}, '${i.name}', ${i.current_price})" 
+                                                                                                                                                class="text-green-500 hover:bg-green-50 p-2 rounded-full transition" title="Cập nhật giá biến động">
+                                                                                                                                                <i class="fas fa-history"></i>
+                                                                                                                                            </button>
+                                                                                                                                        </td>
+                                                                                                                                        <td class="p-4 text-center">
+                                                                                                                                            <div class="flex justify-center space-x-2">
+                                                                                                                                                <button onclick="editIng('${encodeURIComponent(JSON.stringify(i))}')" class="text-blue-400 hover:text-blue-600 p-2" title="Chỉnh sửa">
+                                                                                                                                                    <i class="fas fa-edit"></i>
+                                                                                                                                                </button>
+                                                                                                                                                <button onclick="deleteIng(${i.id})" class="text-red-400 hover:text-red-600 p-2" title="Xóa">
+                                                                                                                                                    <i class="fas fa-trash-alt"></i>
+                                                                                                                                                </button>
+                                                                                                                                            </div>
+                                                                                                                                        </td>
+                                                                                                                                    </tr>`;
                 }).join('');
 
                 paginator.render(result.last_page, result.current_page);
@@ -425,5 +425,21 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => loadData());
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+
+            input.addEventListener('keydown', function (e) {
+                if (e.key === '-') {
+                    e.preventDefault();
+                }
+            });
+
+            input.addEventListener('input', function () {
+                if (this.value === '') return;
+                const min = parseFloat(this.min || 0);
+                if (parseFloat(this.value) < min) {
+                    this.value = min;
+                }
+            });
+        });
     </script>
 @endsection

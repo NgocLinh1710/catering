@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('dish_id')->constrained('dishes')->onDelete('cascade');
             $table->foreignId('ingredient_id')->constrained('ingredients')->onDelete('cascade');
-            $table->decimal('weight', 8, 3); // Khối lượng nguyên liệu (kg)
+            $table->decimal('weight', 8, 3); // Khối lượng nguyên liệu
             $table->timestamps();
         });
     }

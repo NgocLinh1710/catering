@@ -91,6 +91,10 @@ class IngredientController extends Controller
         ]);
 
         $ingredient->update($data);
+        $ingredient->load('dishes.ingredients');
+        foreach ($ingredient->dishes as $dish) {
+            $dish->recalculateNutrition();
+        }
         return response()->json($ingredient);
     }
 
@@ -160,9 +164,28 @@ class IngredientController extends Controller
     public function destroy($id)
     {
         $companyId = auth()->user()->company_id ?? auth()->user()->id;
-        $ingredient = Ingredient::where('company_id', $companyId)->findOrFail($id);
+
+        $ingredient = Ingredient::where('company_id', $companyId)
+            ->findOrFail($id);
+
+        // Không cho xóa nếu nguyên liệu đang được dùng
+        if ($ingredient->dishes()->exists()) {
+
+            $dishNames = $ingredient->dishes()
+                ->pluck('name')
+                ->implode(', ');
+
+            return response()->json([
+                'status' => 'error',
+                'message' => "Không thể xóa nguyên liệu vì đang được sử dụng trong các món: {$dishNames}"
+            ], 422);
+        }
+
         $ingredient->delete();
 
-        return response()->json(['message' => 'Xóa thành công']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Xóa nguyên liệu thành công.'
+        ]);
     }
 }
