@@ -77,9 +77,10 @@
                     </h3>
                     <p class="text-xs text-gray-400">Các đơn vị, trường học đang phục vụ</p>
                 </div>
-                <button onclick="window.location.href='/quan-ly-khach-hang'"
-                    class="px-4 py-2 bg-green-300 text-gray-800 font-bold rounded-lg hover:bg-green-400 transition text-xs shadow-sm">
-                    <i class="fas fa-gear mr-1"></i> Điều hướng quản lý
+                <button id="btnExportExcel"
+                    class="px-4 py-2 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-600 transition text-xs shadow-sm">
+                    <i class="fas fa-file-excel mr-1"></i>
+                    Xuất báo cáo Excel
                 </button>
             </div>
 
@@ -100,21 +101,251 @@
         </div>
     </div>
 
+    <!-- Modal Export -->
+    <div id="exportModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+
+        <div class="bg-white rounded-xl shadow-xl w-[550px] p-6">
+
+            <h2 class="text-lg font-bold mb-5">
+                Xuất báo cáo Excel
+            </h2>
+
+            <div class="space-y-2">
+
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" value="clients" checked>
+                    Danh sách khách hàng
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" value="ingredients" checked>
+                    Danh sách nguyên liệu
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" value="menus" checked>
+                    Báo cáo ngân sách thực đơn
+                </label>
+
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+
+                <div>
+                    <label class="text-sm font-semibold">
+                        Từ ngày
+                    </label>
+
+                    <input type="date" id="fromDate" class="w-full border rounded-lg p-2 mt-1">
+                </div>
+
+                <div>
+                    <label class="text-sm font-semibold">
+                        Đến ngày
+                    </label>
+
+                    <input type="date" id="toDate" class="w-full border rounded-lg p-2 mt-1">
+                </div>
+
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+
+                <button id="closeExportModal" class="px-4 py-2 border rounded-lg">
+                    Hủy
+                </button>
+
+                <button id="confirmExport" class="px-5 py-2 bg-green-600 text-white rounded-lg">
+                    Xuất Excel
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
     <x-ai-chatbot />
 @endsection
 
 @section('scripts')
     <script>
+        let menuChart = null;
         document.addEventListener("DOMContentLoaded", function () {
+            const today = new Date().toISOString().split("T")[0];
+
+            document.getElementById("toDate").value = today;
+
+            const firstDay = new Date();
+            firstDay.setDate(1);
+
+            document.getElementById("fromDate").value =
+                firstDay.toISOString().split("T")[0];
             loadDashboardData();
+
+            const exportModal = document.getElementById("exportModal");
+
+            document
+                .getElementById("btnExportExcel")
+                .addEventListener("click", () => {
+
+                    exportModal.classList.remove("hidden");
+                    exportModal.classList.add("flex");
+
+                });
+
+            document
+                .getElementById("closeExportModal")
+                .addEventListener("click", () => {
+
+                    exportModal.classList.add("hidden");
+                    exportModal.classList.remove("flex");
+
+                });
+
+            document
+                .getElementById("confirmExport")
+                .addEventListener("click", async () => {
+
+                    const exportButton = document.getElementById("confirmExport");
+                    const token = localStorage.getItem("access_token");
+
+                    if (!token || token === "undefined" || token === "null") {
+                        alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+                        return;
+                    }
+
+                    let reports = [];
+
+                    document
+                        .querySelectorAll("#exportModal input[type=checkbox]:checked")
+                        .forEach(c => reports.push(c.value));
+
+                    if (reports.length === 0) {
+                        alert("Vui lòng chọn ít nhất một loại báo cáo.");
+                        return;
+                    }
+
+                    const from = document.getElementById("fromDate").value;
+                    const to = document.getElementById("toDate").value;
+
+                    if (!from || !to) {
+                        alert("Vui lòng chọn khoảng thời gian.");
+                        return;
+                    }
+
+                    if (from > to) {
+                        alert("Ngày bắt đầu không được lớn hơn ngày kết thúc.");
+                        return;
+                    }
+
+                    try {
+
+                        exportButton.disabled = true;
+                        exportButton.innerText = "Đang xuất...";
+
+                        const response = await fetch("/api/company/export-report", {
+                            method: "POST",
+
+                            headers: {
+                                Authorization: "Bearer " + token,
+                                "Content-Type": "application/json",
+                                "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json"
+                            },
+
+                            body: JSON.stringify({
+                                reports: reports,
+                                from: from,
+                                to: to
+                            })
+                        });
+
+                        if (!response.ok) {
+
+                            const contentType = response.headers.get("Content-Type");
+
+                            if (contentType && contentType.includes("application/json")) {
+                                const errorData = await response.json();
+                                alert(errorData.message || "Không thể xuất báo cáo.");
+                            } else {
+                                const text = await response.text();
+                                alert(text || "Không thể xuất báo cáo.");
+                            }
+
+                            return;
+                        }
+
+                        const contentType = response.headers.get("Content-Type");
+
+                        if (contentType && contentType.includes("application/json")) {
+                            const errorData = await response.json();
+                            alert(errorData.message || "Không thể xuất báo cáo.");
+                            return;
+                        }
+
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+
+                        let filename = "BaoCao.xlsx";
+
+                        const disposition = response.headers.get("Content-Disposition");
+
+                        if (disposition) {
+
+                            const utf8 = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+
+                            if (utf8) {
+                                filename = decodeURIComponent(utf8[1]);
+                            } else {
+
+                                const normal = disposition.match(/filename="?([^"]+)"?/i);
+
+                                if (normal) {
+                                    filename = normal[1];
+                                }
+                            }
+                        }
+
+                        a.download = filename;
+
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+
+                        window.URL.revokeObjectURL(url);
+
+                        exportModal.classList.add("hidden");
+                        exportModal.classList.remove("flex");
+
+                    } catch (error) {
+                        exportModal.classList.add("hidden");
+                        exportModal.classList.remove("flex");
+                        console.error("Lỗi xuất Excel:", error);
+                        alert("Không thể xuất báo cáo Excel. Vui lòng thử lại.");
+                    } finally {
+
+                        exportButton.disabled = false;
+                        exportButton.innerText = "Xuất Excel";
+
+                    }
+
+                });
+            exportModal.addEventListener("click", function (e) {
+                if (e.target === exportModal) {
+                    exportModal.classList.add("hidden");
+                    exportModal.classList.remove("flex");
+                }
+            });
         });
 
         window.getUiDescription = () =>
             "Giao diện: 'Tổng quan Doanh nghiệp' (Dashboard số liệu).\n" +
             "1. Khung số liệu thống kê: Hiển thị 3 chỉ số dạng số gồm: Số khách hàng đang hợp tác, Số nhân viên đang hoạt động, và Số nguyên liệu đã được thêm vào kho.\n" +
             "2. Biểu đồ hiển thị: Biểu đồ tròn thể hiện tổng số lượng từng suất ăn (Suất thường, Suất chay, Suất dị ứng) cộng dồn của TẤT CẢ các khách hàng.\n" +
-            "3. Danh sách khách hàng: Bảng hiển thị thông tin các khách hàng kèm theo Nút 'Điều hướng quản lý' (Bấm vào nút này sẽ lập tức chuyển trang đến giao diện Quản lý Khách hàng).\n" +
-            "➡️ THỨ TỰ THỰC HIỆN: Giao diện này chủ yếu để theo dõi trực quan số liệu và bấm nút 'Điều hướng quản lý' để đi thẳng đến trang quản lý khách hàng chi tiết.";
+            "3. Danh sách khách hàng: Bảng hiển thị thông tin các khách hàng kèm nút 'Xuất báo cáo Excel'. Khi nhấn sẽ mở biểu mẫu lựa chọn dữ liệu cần xuất và khoảng thời gian thống kê.\n" +
+            "➡️ THỨ TỰ THỰC HIỆN: Theo dõi số liệu tổng quan, sau đó có thể xuất báo cáo Excel theo nhu cầu.";
 
         async function loadDashboardData() {
             try {
@@ -141,21 +372,23 @@
                     return;
                 }
 
-                document.getElementById('count-clients').innerText = data.counts.clients ?? 0;
-                document.getElementById('count-employees').innerText = data.counts.employees ?? 0;
-                document.getElementById('count-ings').innerText = data.counts.ingredients ?? 0;
+                const counts = data.counts ?? {};
+
+                document.getElementById("count-clients").innerText = counts.clients ?? 0;
+                document.getElementById("count-employees").innerText = counts.employees ?? 0;
+                document.getElementById("count-ings").innerText = counts.ingredients ?? 0;
 
                 const tableBody = document.getElementById('client-table-body');
                 tableBody.innerHTML = '';
 
                 if (!data.clients || data.clients.length === 0) {
                     tableBody.innerHTML = `
-                                                            <tr>
-                                                                <td colspan="3" class="p-8 text-center text-gray-400 font-bold">
-                                                                    <i class="fas fa-folder-open text-xl mb-2 block text-gray-200"></i>
-                                                                    Chưa có dữ liệu đơn vị khách hàng nào trong hệ thống.
-                                                                </td>
-                                                            </tr>`;
+                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                    <td colspan="3" class="p-8 text-center text-gray-400 font-bold">
+                                                                                                                                                                                                        <i class="fas fa-folder-open text-xl mb-2 block text-gray-200"></i>
+                                                                                                                                                                                                        Chưa có dữ liệu đơn vị khách hàng nào trong hệ thống.
+                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                </tr>`;
                 } else {
                     data.clients.forEach(client => {
                         const isAction = client.status == 1 || client.status == 'active';
@@ -164,34 +397,46 @@
                             : `<span class="bg-gray-50 text-gray-400 px-2.5 py-1 rounded-lg text-[10px] font-black border border-gray-100">Tạm ngưng hợp tác</span>`;
 
                         tableBody.innerHTML += `
-                                                                <tr class="hover:bg-gray-50/50 transition">
-                                                                    <td class="p-4 font-bold text-gray-800">${client.name}</td>
-                                                                    <td class="p-4 text-gray-500">${client.address || 'Chưa cập nhật'}</td>
-                                                                    <td class="p-4 text-center">${statusBadge}</td>
-                                                                </tr>
-                                                            `;
+                                                                                                                                                                                                    <tr class="hover:bg-gray-50/50 transition">
+                                                                                                                                                                                                        <td class="p-4 font-bold text-gray-800">${client.name}</td>
+                                                                                                                                                                                                        <td class="p-4 text-gray-500">${client.address || 'Chưa cập nhật'}</td>
+                                                                                                                                                                                                        <td class="p-4 text-center">${statusBadge}</td>
+                                                                                                                                                                                                    </tr>
+                                                                                                                                                                                                `;
                     });
                 }
 
                 // Khởi tạo biểu đồ cơ cấu suất ăn (Chỉ vẽ khi có số liệu, ngược lại hiện 0/Trống)
-                const totalServings = data.chart.values.reduce((sum, val) => sum + val, 0);
+                const values = data.chart?.values ?? [];
+                const labels = data.chart?.labels ?? [];
+
+                const totalServings = values.reduce((sum, val) => sum + val, 0);
+
                 const chartCanvas = document.getElementById('menuStructureChart');
                 const emptyState = document.getElementById('chart-empty-state');
 
                 if (totalServings === 0) {
+
                     chartCanvas.classList.add('hidden');
                     emptyState.classList.remove('hidden');
+
                 } else {
+
                     chartCanvas.classList.remove('hidden');
                     emptyState.classList.add('hidden');
 
+                    if (menuChart) {
+                        menuChart.destroy();
+                    }
+
                     const ctx = chartCanvas.getContext('2d');
-                    new Chart(ctx, {
+
+                    menuChart = new Chart(ctx, {
                         type: 'doughnut',
                         data: {
-                            labels: data.chart.labels,
+                            labels: labels,
                             datasets: [{
-                                data: data.chart.values,
+                                data: values,
                                 backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b'],
                                 borderWidth: 2,
                                 borderColor: '#ffffff'
@@ -203,7 +448,10 @@
                                 legend: {
                                     position: 'bottom',
                                     labels: {
-                                        font: { size: 10, weight: 'bold' },
+                                        font: {
+                                            size: 10,
+                                            weight: 'bold'
+                                        },
                                         boxWidth: 10,
                                         padding: 12
                                     }
@@ -212,6 +460,7 @@
                             cutout: '70%'
                         }
                     });
+
                 }
 
             } catch (err) {

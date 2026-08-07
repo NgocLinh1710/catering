@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\CompanyRegistrationController;
 use App\Http\Controllers\Admin\CompanyApprovalController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Api\AiChatController;
+use App\Http\Controllers\Company\ExcelReportController;
 
 // PUBLIC ROUTES (Không cần đăng nhập)
 
@@ -88,4 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/ai/chat', [AiChatController::class, 'chat']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
+
+    // Xuất báo cáo Excel
+    Route::post('/company/export-report', [ExcelReportController::class, 'export']);
 });

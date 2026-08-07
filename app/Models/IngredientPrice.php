@@ -13,4 +13,12 @@ class IngredientPrice extends Model
         'price',
         'applied_date'
     ];
+
+
+    public function ingredient()
+    {
+        return $this->belongsTo(
+            Ingredient::class
+        );
+    }
 }
