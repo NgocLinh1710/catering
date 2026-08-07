@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip \
     python3 \
@@ -20,7 +21,15 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Cài đặt các thư viện PHP cần thiết để kết nối MySQL (PDO)
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-configure gd \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip
 
 # Cài đặt công cụ Composer mới nhất vào bên trong
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -43,7 +52,4 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Cấu hình cổng chạy mạng cho Web qua Nginx
 COPY .nginx/nginx.conf /etc/nginx/sites-available/default
 
-# LỆNH KHỞI CHẠY (QUAN TRỌNG): 
-# Chúng ta đưa các lệnh xóa cache vào đây. Khi container khởi chạy thật trên Render, 
-# lúc này đã có đủ Database và biến môi trường, lệnh chạy sẽ mượt mà 100%!
 CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force && service nginx start && php-fpm
