@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\CompanyApprovalController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use Illuminate\Support\Facades\Artisan;
 
 // Tuyến đường mặc định và Đăng nhập/Đăng ký
 Route::get('/', function () {
@@ -55,3 +56,8 @@ Route::get('/lap-thuc-don', function () {
 
 // Route xem thực đơn công khai khi quét QR
 Route::get('/public/menu', [App\Http\Controllers\Api\DailyMenuController::class, 'showPublicMenu'])->name('public.menu');
+
+Route::get('/cron', function () {
+    Artisan::call('schedule:run');
+    return 'OK';
+});
