@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Log;
 class AiChatController extends Controller
 {
     private $apiKey;
-
     private $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-
     private $model = 'qwen/qwen3.6-27b';
 
     public function chat(Request $request)
@@ -58,51 +56,72 @@ class AiChatController extends Controller
         $systemInstruction = <<<PROMPT
 Bạn là "Trợ lý Thực đơn & Dinh dưỡng AI" cho phần mềm quản lý suất ăn công nghiệp.
 
-Bạn hỗ trợ:
-- Tra cứu món ăn, giá và dinh dưỡng.
-- Phân tích thực đơn.
-- Kiểm tra Kcal, Protein, Fat, Glucid và chi phí.
-- Hướng dẫn người dùng thao tác trên hệ thống.
+CHẾ ĐỘ HIỆN TẠI:
+{$mode}
 
 MÔ TẢ GIAO DIỆN HIỆN TẠI:
 ==============================
 {$uiDescription}
 ==============================
 
-QUY TẮC THEO CHẾ ĐỘ:
+NHIỆM VỤ:
 
 1. nutrition_analysis
-- Phân tích chỉ số thực tế so với mục tiêu.
-- Đánh giá Kcal, chi phí, Protein, Fat và Glucid.
-- Nếu người dùng yêu cầu gợi ý món, chỉ sử dụng món do tool trả về.
-- Không tự bịa tên món, giá hoặc số liệu.
-- Nếu thực đơn đang trống thì nói rõ chỉ số hiện tại bằng 0.
-- Khi đề xuất nhiều món, phải tính tổng Kcal dựa đúng dữ liệu tool.
+- Phân tích Kcal, chi phí, Protein, Fat và Glucid thực tế so với mục tiêu.
+- Nếu người dùng yêu cầu gợi ý món, phải sử dụng dữ liệu món do tool trả về.
+- Không được tự bịa tên món, giá, Kcal hoặc số liệu dinh dưỡng.
+- Nếu thực đơn đang trống, nói rõ các chỉ số thực tế đang bằng 0.
+- Khi đề xuất nhiều món, tính tổng dựa đúng dữ liệu tool.
+- Có thể đề xuất tăng hoặc giảm món để tiến gần mục tiêu.
+- Không cần trình bày các phương án đã thử nhưng không phù hợp.
 
 2. dish_lookup
-- Khi hỏi về món ăn, giá, Kcal hoặc thống kê phải sử dụng tool phù hợp.
-- Chỉ sử dụng dữ liệu từ hệ thống.
+- Khi người dùng hỏi về món ăn, giá, Kcal hoặc thống kê món ăn, phải sử dụng tool phù hợp.
+- Chỉ sử dụng dữ liệu do hệ thống trả về.
 - Không tự tạo dữ liệu.
 
 3. helpdesk
-- Chỉ hướng dẫn dựa trên mô tả giao diện.
-- Không được tự bịa nút, ô nhập, tab hoặc chức năng.
+- Đọc kỹ mô tả giao diện hiện tại.
+- Hướng dẫn thao tác dựa đúng giao diện được cung cấp.
+- Không được tự bịa nút, ô nhập, tab hoặc chức năng không xuất hiện trong mô tả.
 
-QUY TẮC BẮT BUỘC VỀ CÂU TRẢ LỜI:
-- Chỉ trả về câu trả lời cuối cùng cho người dùng.
-- KHÔNG được hiển thị suy luận nội bộ.
-- KHÔNG được hiển thị reasoning, chain-of-thought hoặc quá trình tự kiểm tra.
-- KHÔNG được viết các câu như "The user wants...", "I need to...", "Let's calculate...", "Draft:", "Self-Correction:", "I will...", "Proceeds..." hoặc tương tự.
-- KHÔNG được trả lời bằng tiếng Anh.
-- Chỉ trả lời bằng tiếng Việt.
+QUY TẮC OUTPUT BẮT BUỘC:
+
+- Chỉ trả về câu trả lời cuối cùng dành cho người dùng.
+- Chỉ sử dụng tiếng Việt.
+- Không hiển thị suy luận nội bộ.
+- Không hiển thị reasoning hoặc chain-of-thought.
+- Không mô tả quá trình AI đang suy nghĩ.
+- Không viết các câu như:
+  "The user wants..."
+  "The user is asking..."
+  "I need to..."
+  "I should..."
+  "I will..."
+  "Let's..."
+  "Let's try..."
+  "Let's calculate..."
+  "Let's verify..."
+  "Draft:"
+  "Self-Correction:"
+  "Check rules:"
+  "Proceeds..."
+  "Output Generation..."
+  "All steps verified..."
+- Không trình bày các phép thử trung gian hoặc phương án bị loại bỏ.
+- Không trình bày quá trình cộng, thử hoặc điều chỉnh món.
+- Nếu cần tính toán, chỉ đưa ra kết quả cuối cùng.
 - Không lặp lại câu hỏi của người dùng.
-- Ngắn gọn, rõ ràng, thân thiện.
+- Trả lời ngắn gọn, rõ ràng, tự nhiên.
 - Ưu tiên gạch đầu dòng.
 - Có thể sử dụng emoji phù hợp.
-- Chỉ đưa ra kết quả và lời giải thích cần thiết cho người dùng.
+- Chỉ cung cấp thông tin cần thiết cho người dùng.
+
+CẤM TUYỆT ĐỐI:
+Không được đưa nội dung suy luận, bản nháp hoặc quá trình tự kiểm tra vào câu trả lời cuối cùng.
 PROMPT;
 
-        $contextString = "NGỮ CẢNH DỮ LIỆU THỰC TẾ:\n";
+        $contextString = "NGỮ CẢNH DỮ LIỆU THỰC TẾ TRÊN MÀN HÌNH:\n";
 
         $contextString .= "- Kcal mục tiêu: "
             . ($formContext['target_calories'] ?? 'Chưa rõ')
@@ -133,7 +152,7 @@ PROMPT;
             . " g\n";
 
         if (!empty($formContext['chosen_dishes'])) {
-            $contextString .= "- Các món đang có: "
+            $contextString .= "- Các món đang có trong thực đơn: "
                 . json_encode(
                     $formContext['chosen_dishes'],
                     JSON_UNESCAPED_UNICODE
@@ -188,6 +207,10 @@ PROMPT;
         $aiMessage = $responseData['choices'][0]['message'] ?? null;
 
         if (!$aiMessage) {
+            Log::error('Groq response does not contain message', [
+                'response' => $responseData
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'AI không trả về dữ liệu hợp lệ.'
@@ -205,7 +228,10 @@ PROMPT;
                     continue;
                 }
 
-                $functionArgs = json_decode($rawArguments, true);
+                $functionArgs = json_decode(
+                    $rawArguments,
+                    true
+                );
 
                 if (!is_array($functionArgs)) {
                     $functionArgs = [];
@@ -228,14 +254,24 @@ PROMPT;
                     ];
                 }
 
+                $toolContent = json_encode(
+                    $localResult,
+                    JSON_UNESCAPED_UNICODE
+                );
+
+                if (strlen($toolContent) > 12000) {
+                    $toolContent = substr(
+                        $toolContent,
+                        0,
+                        12000
+                    );
+                }
+
                 $messages[] = [
                     'role' => 'tool',
                     'tool_call_id' => $toolCall['id'],
                     'name' => $functionName,
-                    'content' => json_encode(
-                        $localResult,
-                        JSON_UNESCAPED_UNICODE
-                    )
+                    'content' => $toolContent
                 ];
             }
 
@@ -270,7 +306,9 @@ PROMPT;
 
             $finalData = $finalResponse->json();
 
-            $aiReply = $finalData['choices'][0]['message']['content'] ?? '';
+            $aiReply =
+                $finalData['choices'][0]['message']['content']
+                ?? '';
 
             $aiReply = $this->cleanAiResponse($aiReply);
 
@@ -304,14 +342,19 @@ PROMPT;
         ]);
     }
 
-    private function sendRequest($messages, $tools = [], $allowTools = true)
-    {
+    private function sendRequest(
+        array $messages,
+        array $tools = [],
+        bool $allowTools = true
+    ) {
         $payload = [
             'model' => $this->model,
             'messages' => $messages,
-            'temperature' => 0.1,
+            'reasoning_effort' => 'none',
+            'reasoning_format' => 'hidden',
+            'temperature' => 0.2,
             'top_p' => 0.8,
-            'max_tokens' => 1200
+            'max_completion_tokens' => 700
         ];
 
         if ($allowTools && !empty($tools)) {
@@ -338,45 +381,64 @@ PROMPT;
             return '';
         }
 
-        $patterns = [
+        $text = preg_replace(
             '/<think>.*?<\/think>/is',
+            '',
+            $text
+        );
+
+        $text = preg_replace(
             '/<analysis>.*?<\/analysis>/is',
-            '/<reasoning>.*?<\/reasoning>/is'
-        ];
+            '',
+            $text
+        );
 
-        $text = preg_replace($patterns, '', $text);
-
-        $markers = [
-            'The user wants',
-            'The user is asking',
-            'I need to',
-            'I should',
-            'Let\'s calculate',
-            'Let\'s look',
-            'I will',
-            'Draft:',
-            'Self-Correction:',
-            'Self-Correction/Verification',
-            '[Output Generation]',
-            'Proceeds to output response',
-            'Done.',
-            'All steps verified.'
-        ];
+        $text = preg_replace(
+            '/<reasoning>.*?<\/reasoning>/is',
+            '',
+            $text
+        );
 
         $lines = preg_split('/\R/', $text);
         $cleanLines = [];
+
+        $blockedPrefixes = [
+            'The user wants',
+            'The user is asking',
+            'The user needs',
+            'I need to',
+            'I should',
+            'I will',
+            'Let\'s calculate',
+            'Let\'s look',
+            'Let\'s try',
+            'Let\'s aim',
+            'Let\'s verify',
+            'Draft:',
+            'Self-Correction:',
+            'Self-Correction/Verification',
+            'Check rules:',
+            'Output Generation',
+            'Proceeds to output',
+            'All steps verified',
+            'Done.'
+        ];
 
         foreach ($lines as $line) {
             $trimmed = trim($line);
 
             if ($trimmed === '') {
+                if (!empty($cleanLines)) {
+                    $cleanLines[] = '';
+                }
+
                 continue;
             }
 
             $skip = false;
 
-            foreach ($markers as $marker) {
-                if (stripos($trimmed, $marker) === 0) {
+            foreach ($blockedPrefixes as $prefix) {
+                if (stripos($trimmed, $prefix) === 0) {
                     $skip = true;
                     break;
                 }
@@ -442,7 +504,9 @@ PROMPT;
                                     'cheapest',
                                     'highest_calories',
                                     'lowest_calories'
-                                ]
+                                ],
+                                'description' =>
+                                    'Tiêu chí thống kê.'
                             ],
                             'category' => [
                                 'type' => 'string',
@@ -452,7 +516,9 @@ PROMPT;
                                     'canh',
                                     'khai vị',
                                     'tráng miệng'
-                                ]
+                                ],
+                                'description' =>
+                                    'Giới hạn loại món nếu người dùng yêu cầu.'
                             ]
                         ],
                         'required' => ['criteria'],
@@ -477,7 +543,9 @@ PROMPT;
                                     'gluten',
                                     'sữa',
                                     'trứng'
-                                ]
+                                ],
+                                'description' =>
+                                    'Loại dị ứng cần tìm.'
                             ]
                         ],
                         'required' => ['allergy_tag'],
@@ -488,12 +556,18 @@ PROMPT;
         ];
     }
 
-    private function executeTargetFunction($name, $args, $companyId)
-    {
+    private function executeTargetFunction(
+        $name,
+        $args,
+        $companyId
+    ) {
         switch ($name) {
             case 'search_dishes':
 
-                $query = Dish::where('company_id', $companyId);
+                $query = Dish::where(
+                    'company_id',
+                    $companyId
+                );
 
                 if (!empty($args['category'])) {
                     $query->where(
@@ -516,21 +590,40 @@ PROMPT;
                     ->get()
                     ->map(function ($dish) {
                         return [
-                            'name' => $dish->name,
-                            'category' => $dish->category ?? 'Chưa phân loại',
-                            'cost' => $dish->cost_per_serving,
-                            'calories' => $dish->calories_per_serving,
-                            'protein' => $dish->protein_per_serving,
-                            'fat' => $dish->fat_per_serving,
-                            'glucid' => $dish->glucid_per_serving,
-                            'allergy_tags' => $dish->allergy_tags
+                            'name' =>
+                                $dish->name,
+
+                            'category' =>
+                                $dish->category
+                                ?? 'Chưa phân loại',
+
+                            'cost' =>
+                                $dish->cost_per_serving,
+
+                            'calories' =>
+                                $dish->calories_per_serving,
+
+                            'protein' =>
+                                $dish->protein_per_serving,
+
+                            'fat' =>
+                                $dish->fat_per_serving,
+
+                            'glucid' =>
+                                $dish->glucid_per_serving,
+
+                            'allergy_tags' =>
+                                $dish->allergy_tags
                         ];
                     })
                     ->toArray();
 
             case 'get_dish_statistics':
 
-                $query = Dish::where('company_id', $companyId);
+                $query = Dish::where(
+                    'company_id',
+                    $companyId
+                );
 
                 if (!empty($args['category'])) {
                     $query->where(
@@ -589,13 +682,27 @@ PROMPT;
                 }
 
                 return [
-                    'name' => $dish->name,
-                    'category' => $dish->category ?? 'Chưa phân loại',
-                    'cost' => $dish->cost_per_serving,
-                    'calories' => $dish->calories_per_serving,
-                    'protein' => $dish->protein_per_serving,
-                    'fat' => $dish->fat_per_serving,
-                    'glucid' => $dish->glucid_per_serving
+                    'name' =>
+                        $dish->name,
+
+                    'category' =>
+                        $dish->category
+                        ?? 'Chưa phân loại',
+
+                    'cost' =>
+                        $dish->cost_per_serving,
+
+                    'calories' =>
+                        $dish->calories_per_serving,
+
+                    'protein' =>
+                        $dish->protein_per_serving,
+
+                    'fat' =>
+                        $dish->fat_per_serving,
+
+                    'glucid' =>
+                        $dish->glucid_per_serving
                 ];
 
             case 'filter_dishes_by_allergy':
@@ -672,19 +779,34 @@ PROMPT;
                 return $matchedDishes
                     ->map(function ($dish) {
                         return [
-                            'name' => $dish->name,
-                            'category' => $dish->category ?? 'Chưa phân loại',
-                            'cost' => $dish->cost_per_serving,
-                            'calories' => $dish->calories_per_serving,
-                            'protein' => $dish->protein_per_serving,
-                            'fat' => $dish->fat_per_serving,
-                            'glucid' => $dish->glucid_per_serving
+                            'name' =>
+                                $dish->name,
+
+                            'category' =>
+                                $dish->category
+                                ?? 'Chưa phân loại',
+
+                            'cost' =>
+                                $dish->cost_per_serving,
+
+                            'calories' =>
+                                $dish->calories_per_serving,
+
+                            'protein' =>
+                                $dish->protein_per_serving,
+
+                            'fat' =>
+                                $dish->fat_per_serving,
+
+                            'glucid' =>
+                                $dish->glucid_per_serving
                         ];
                     })
                     ->values()
                     ->toArray();
 
             default:
+
                 return [
                     'error' =>
                         'Hàm yêu cầu không tồn tại trên hệ thống.'
