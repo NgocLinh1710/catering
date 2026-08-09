@@ -12,7 +12,7 @@ class AiChatController extends Controller
 {
     private $apiKey;
     private $apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-    private $model = "llama-3.3-70b-versatile";
+    private $model = "qwen/qwen3.6-27b";
 
     public function chat(Request $request)
     {
