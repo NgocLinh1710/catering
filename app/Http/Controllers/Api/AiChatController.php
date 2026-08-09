@@ -11,14 +11,24 @@ use Illuminate\Support\Facades\Log;
 class AiChatController extends Controller
 {
     private $apiKey;
+
     private $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+
     private $model = 'qwen/qwen3.6-27b';
 
     public function chat(Request $request)
     {
         $mode = $request->input('mode', 'nutrition_analysis');
-        $userMessage = trim($request->input('message', ''));
-        $formContext = $request->input('form_context', []);
+
+        $userMessage = trim(
+            (string) $request->input('message', '')
+        );
+
+        $formContext = $request->input(
+            'form_context',
+            []
+        );
+
         $uiDescription = $request->input(
             'ui_description',
             'Giao diện chung của hệ thống quản lý suất ăn.'
@@ -63,8 +73,13 @@ class AiChatController extends Controller
             ], 422);
         }
 
-        // Chặn các yêu cầu rõ ràng thuộc mode khác.
-        $modeMismatch = $this->checkModeMismatch($mode, $userMessage);
+        /* Kiểm tra câu hỏi có thuộc mode khác hay không
+         */
+
+        $modeMismatch = $this->checkModeMismatch(
+            $mode,
+            $userMessage
+        );
 
         if ($modeMismatch !== null) {
             return response()->json([
@@ -87,6 +102,7 @@ MÔ TẢ GIAO DIỆN HIỆN TẠI:
 NGUYÊN TẮC QUAN TRỌNG:
 
 Chế độ hiện tại là phạm vi chức năng của cuộc hội thoại.
+
 Không được tự ý thực hiện nhiệm vụ thuộc chế độ khác.
 
 Nếu câu hỏi thuộc chế độ khác:
@@ -95,7 +111,13 @@ Nếu câu hỏi thuộc chế độ khác:
 - Yêu cầu người dùng chuyển sang đúng chế độ.
 - Phải nêu rõ tên chế độ cần chuyển sang.
 
-Câu hỏi về "giao diện hiện tại", "màn hình hiện tại", "chế độ hiện tại dùng để làm gì"
+Câu hỏi về:
+- "giao diện hiện tại dùng để làm gì"
+- "màn hình hiện tại dùng để làm gì"
+- "chế độ hiện tại dùng để làm gì"
+- "đang ở chế độ gì"
+- "đây là giao diện gì"
+
 được phép trả lời trong mọi chế độ dựa trên mô tả giao diện được cung cấp.
 
 ==============================
@@ -103,16 +125,31 @@ Câu hỏi về "giao diện hiện tại", "màn hình hiện tại", "chế đ
 ==============================
 
 Được phép:
+
 - Phân tích thực đơn hiện tại.
-- Kiểm tra Kcal, Protein, Fat, Glucid và chi phí.
+- Kiểm tra Kcal.
+- Kiểm tra Protein.
+- Kiểm tra Fat.
+- Kiểm tra Glucid.
+- Kiểm tra Fiber (chất xơ).
+- Kiểm tra chi phí.
 - So sánh số liệu thực tế với mục tiêu.
 - Đánh giá thực đơn thiếu hoặc vượt mục tiêu.
 - Gợi ý thêm, bớt hoặc thay đổi món.
 - Khi gợi ý món, chỉ sử dụng món do tool search_dishes trả về.
 - Tính tổng dinh dưỡng dựa đúng dữ liệu tool.
+- Khi tính tổng dinh dưỡng phải bao gồm:
+  + Kcal
+  + Protein
+  + Fat
+  + Glucid
+  + Fiber
+  + Chi phí
+- Không được tự bịa số liệu Fiber.
 - Giải thích mục đích của giao diện hiện tại.
 
 Không được phép:
+
 - Tra cứu món đắt nhất hoặc rẻ nhất.
 - Tra cứu món nhiều hoặc ít Kcal nhất.
 - Tra cứu giá món độc lập.
@@ -121,10 +158,13 @@ Không được phép:
 - Hướng dẫn thao tác chi tiết thuộc "Hướng dẫn điền form / Thao tác".
 
 Nếu người dùng yêu cầu tra cứu món, giá hoặc thống kê món:
+
 "Bạn đang ở chế độ Kiểm duyệt thực đơn. Vui lòng chuyển sang chế độ Tra cứu món & giá để thực hiện yêu cầu này."
 
 Nếu thực đơn đang trống:
+
 - Nói rõ các chỉ số thực tế hiện tại bằng 0.
+- Bao gồm cả Fiber = 0 g.
 - Nếu người dùng yêu cầu gợi ý món, sử dụng tool để lấy món từ hệ thống.
 
 ==============================
@@ -132,6 +172,7 @@ Nếu thực đơn đang trống:
 ==============================
 
 Được phép:
+
 - Tìm kiếm món ăn trong kho.
 - Tra cứu giá món.
 - Tìm món đắt nhất hoặc rẻ nhất.
@@ -142,12 +183,14 @@ Nếu thực đơn đang trống:
 - Sử dụng tool để lấy dữ liệu thực tế.
 
 Không được phép:
+
 - Tự bịa tên món.
 - Tự bịa giá hoặc số liệu dinh dưỡng.
 - Tự ý thay đổi thực đơn.
 - Hướng dẫn thao tác chi tiết trên giao diện.
 
 Nếu người dùng yêu cầu hướng dẫn thao tác:
+
 "Bạn đang ở chế độ Tra cứu món & giá. Vui lòng chuyển sang chế độ Hướng dẫn điền form / Thao tác để được hướng dẫn."
 
 ==============================
@@ -155,12 +198,14 @@ Nếu người dùng yêu cầu hướng dẫn thao tác:
 ==============================
 
 Được phép:
+
 - Giải thích giao diện hiện tại.
 - Hướng dẫn từng bước thao tác.
 - Chỉ dẫn nút bấm, trường nhập liệu, tab và thứ tự thực hiện.
 - Chỉ sử dụng thông tin có trong mô tả giao diện.
 
 Không được phép:
+
 - Tra cứu món bằng tool.
 - Tra cứu giá.
 - Tìm món đắt nhất hoặc rẻ nhất.
@@ -168,6 +213,7 @@ Không được phép:
 - Tự tạo dữ liệu không có trong mô tả giao diện.
 
 Nếu người dùng yêu cầu tra cứu món, giá hoặc thống kê:
+
 "Bạn đang ở chế độ Hướng dẫn điền form / Thao tác. Vui lòng chuyển sang chế độ Tra cứu món & giá để thực hiện yêu cầu này."
 
 ==============================
@@ -175,7 +221,13 @@ QUY TẮC DỮ LIỆU
 ==============================
 
 - Chỉ sử dụng dữ liệu do hệ thống hoặc tool cung cấp.
-- Không tự bịa tên món, giá, Kcal hoặc thông tin dinh dưỡng.
+- Không tự bịa tên món.
+- Không tự bịa giá.
+- Không tự bịa Kcal.
+- Không tự bịa Protein.
+- Không tự bịa Fat.
+- Không tự bịa Glucid.
+- Không tự bịa Fiber.
 - Khi đề xuất nhiều món, phải tính tổng dựa đúng dữ liệu tool.
 - Không trình bày các phương án thử nhưng không phù hợp.
 - Không trình bày quá trình suy luận hoặc tính toán trung gian.
@@ -211,44 +263,61 @@ QUY TẮC OUTPUT
 - Ngắn gọn, rõ ràng, tự nhiên.
 - Ưu tiên gạch đầu dòng.
 - Có thể sử dụng emoji phù hợp.
+
 PROMPT;
+        $contextString =
+            "NGỮ CẢNH DỮ LIỆU THỰC TẾ TRÊN MÀN HÌNH:\n";
 
-        $contextString = "NGỮ CẢNH DỮ LIỆU THỰC TẾ TRÊN MÀN HÌNH:\n";
-
-        $contextString .= "- Kcal mục tiêu: "
+        $contextString .=
+            "- Kcal mục tiêu: "
             . ($formContext['target_calories'] ?? 'Chưa rõ')
             . " Kcal\n";
 
-        $contextString .= "- Ngân sách mục tiêu: "
+        $contextString .=
+            "- Ngân sách mục tiêu: "
             . ($formContext['target_budget'] ?? 'Chưa rõ')
             . " VNĐ\n";
 
-        $contextString .= "- Kcal thực tế: "
+        $contextString .=
+            "- Kcal thực tế: "
             . ($formContext['current_calories'] ?? '0')
             . " Kcal\n";
 
-        $contextString .= "- Chi phí thực tế: "
+        $contextString .=
+            "- Chi phí thực tế: "
             . ($formContext['current_cost'] ?? '0')
             . " VNĐ\n";
 
-        $contextString .= "- Protein thực tế: "
+        $contextString .=
+            "- Protein thực tế: "
             . ($formContext['current_protein'] ?? '0')
             . " g\n";
 
-        $contextString .= "- Fat thực tế: "
+        $contextString .=
+            "- Fat thực tế: "
             . ($formContext['current_fat'] ?? '0')
             . " g\n";
 
-        $contextString .= "- Glucid thực tế: "
+        $contextString .=
+            "- Glucid thực tế: "
             . ($formContext['current_glucid'] ?? '0')
             . " g\n";
 
+        $contextString .=
+            "- Fiber (chất xơ) thực tế: "
+            . ($formContext['current_fiber'] ?? '0')
+            . " g\n";
+
         if (!empty($formContext['chosen_dishes'])) {
-            $contextString .= "- Các món đang có trong thực đơn: "
-                . json_encode(
-                    $formContext['chosen_dishes'],
-                    JSON_UNESCAPED_UNICODE
-                )
+            $chosenDishesJson = json_encode(
+                $formContext['chosen_dishes'],
+                JSON_UNESCAPED_UNICODE |
+                JSON_INVALID_UTF8_SUBSTITUTE
+            );
+
+            $contextString .=
+                "- Các món đang có trong thực đơn: "
+                . $chosenDishesJson
                 . "\n";
         }
 
@@ -266,7 +335,9 @@ PROMPT;
             ]
         ];
 
-        // Chỉ cấp tool phù hợp với mode hiện tại.
+        /* Chỉ cấp tool phù hợp với mode
+         */
+
         $tools = $this->getToolsForMode($mode);
 
         try {
@@ -282,7 +353,8 @@ PROMPT;
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Không thể kết nối đến hệ thống AI. Vui lòng thử lại.'
+                'message' =>
+                    'Không thể kết nối đến hệ thống AI. Vui lòng thử lại.'
             ], 500);
         }
 
@@ -299,12 +371,18 @@ PROMPT;
         }
 
         $responseData = $response->json();
-        $aiMessage = $responseData['choices'][0]['message'] ?? null;
+
+        $aiMessage =
+            $responseData['choices'][0]['message']
+            ?? null;
 
         if (!$aiMessage) {
-            Log::error('Groq response does not contain message', [
-                'response' => $responseData
-            ]);
+            Log::error(
+                'Groq response does not contain message',
+                [
+                    'response' => $responseData
+                ]
+            );
 
             return response()->json([
                 'status' => 'error',
@@ -312,12 +390,20 @@ PROMPT;
             ], 500);
         }
 
+        /* Tool Calls
+         */
+
         if (!empty($aiMessage['tool_calls'])) {
             $messages[] = $aiMessage;
 
             foreach ($aiMessage['tool_calls'] as $toolCall) {
-                $functionName = $toolCall['function']['name'] ?? null;
-                $rawArguments = $toolCall['function']['arguments'] ?? '{}';
+                $functionName =
+                    $toolCall['function']['name']
+                    ?? null;
+
+                $rawArguments =
+                    $toolCall['function']['arguments']
+                    ?? '{}';
 
                 if (!$functionName) {
                     continue;
@@ -333,84 +419,111 @@ PROMPT;
                 }
 
                 try {
-                    $localResult = $this->executeTargetFunction(
-                        $functionName,
-                        $functionArgs,
-                        $companyId
-                    );
+                    $localResult =
+                        $this->executeTargetFunction(
+                            $functionName,
+                            $functionArgs,
+                            $companyId
+                        );
                 } catch (\Throwable $e) {
-                    Log::error('Tool execution error', [
-                        'function' => $functionName,
-                        'error' => $e->getMessage()
-                    ]);
+                    Log::error(
+                        'Tool execution error',
+                        [
+                            'function' => $functionName,
+                            'error' => $e->getMessage()
+                        ]
+                    );
 
                     $localResult = [
-                        'error' => 'Không thể truy vấn dữ liệu hệ thống.'
+                        'error' =>
+                            'Không thể truy vấn dữ liệu hệ thống.'
                     ];
                 }
 
                 $toolContent = json_encode(
                     $localResult,
-                    JSON_UNESCAPED_UNICODE
+                    JSON_UNESCAPED_UNICODE |
+                    JSON_INVALID_UTF8_SUBSTITUTE
                 );
 
+                if ($toolContent === false) {
+                    $toolContent = json_encode([
+                        'error' =>
+                            'Dữ liệu hệ thống chứa ký tự không hợp lệ.'
+                    ], JSON_UNESCAPED_UNICODE);
+                }
+
                 if (strlen($toolContent) > 12000) {
-                    $toolContent = substr(
-                        $toolContent,
-                        0,
-                        12000
-                    );
+                    $toolContent =
+                        substr($toolContent, 0, 12000);
                 }
 
                 $messages[] = [
                     'role' => 'tool',
-                    'tool_call_id' => $toolCall['id'],
-                    'name' => $functionName,
-                    'content' => $toolContent
+                    'tool_call_id' =>
+                        $toolCall['id'],
+                    'name' =>
+                        $functionName,
+                    'content' =>
+                        $toolContent
                 ];
             }
 
             try {
-                $finalResponse = $this->sendRequest(
-                    $messages,
-                    [],
-                    false
-                );
+                $finalResponse =
+                    $this->sendRequest(
+                        $messages,
+                        [],
+                        false
+                    );
             } catch (\Throwable $e) {
-                Log::error('Groq Step 2 Exception', [
-                    'message' => $e->getMessage()
-                ]);
+                Log::error(
+                    'Groq Step 2 Exception',
+                    [
+                        'message' => $e->getMessage()
+                    ]
+                );
 
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Không thể tổng hợp kết quả từ hệ thống AI.'
+                    'message' =>
+                        'Không thể tổng hợp kết quả từ hệ thống AI.'
                 ], 500);
             }
 
             if (!$finalResponse->successful()) {
-                Log::error('Groq API Step 2 Error', [
-                    'status' => $finalResponse->status(),
-                    'body' => $finalResponse->body()
-                ]);
+                Log::error(
+                    'Groq API Step 2 Error',
+                    [
+                        'status' =>
+                            $finalResponse->status(),
+                        'body' =>
+                            $finalResponse->body()
+                    ]
+                );
 
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Lỗi xử lý tổng hợp dữ liệu từ AI.'
+                    'message' =>
+                        'Lỗi xử lý tổng hợp dữ liệu từ AI.'
                 ], 500);
             }
 
-            $finalData = $finalResponse->json();
+            $finalData =
+                $finalResponse->json();
 
             $aiReply =
                 $finalData['choices'][0]['message']['content']
                 ?? '';
 
-            $aiReply = $this->cleanAiResponse($aiReply);
+            $aiReply =
+                $this->cleanAiResponse($aiReply);
 
             if ($aiReply === '') {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'AI không tạo được câu trả lời.'
+                    'message' =>
+                        'AI không tạo được câu trả lời.'
                 ], 500);
             }
 
@@ -420,14 +533,19 @@ PROMPT;
             ]);
         }
 
-        $aiReply = $this->cleanAiResponse(
-            $aiMessage['content'] ?? ''
-        );
+        /* Không sử dụng Tool
+         */
+
+        $aiReply =
+            $this->cleanAiResponse(
+                $aiMessage['content'] ?? ''
+            );
 
         if ($aiReply === '') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'AI không trả về nội dung phản hồi.'
+                'message' =>
+                    'AI không trả về nội dung phản hồi.'
             ], 500);
         }
 
@@ -465,8 +583,14 @@ PROMPT;
             ])
             ->timeout(45)
             ->connectTimeout(15)
-            ->post($this->apiUrl, $payload);
+            ->post(
+                $this->apiUrl,
+                $payload
+            );
     }
+
+    /* Tool theo mode
+     */
 
     private function getToolsForMode($mode)
     {
@@ -480,6 +604,9 @@ PROMPT;
 
         return [];
     }
+
+    /* Tool cho kiểm duyệt thực đơn
+     */
 
     private function defineNutritionTools()
     {
@@ -512,6 +639,9 @@ PROMPT;
         ];
     }
 
+    /* Tool cho Tra cứu món & giá
+     */
+
     private function defineTools()
     {
         return [
@@ -520,7 +650,7 @@ PROMPT;
                 'function' => [
                     'name' => 'search_dishes',
                     'description' =>
-                        'Tìm kiếm món ăn trong cơ sở dữ liệu của doanh nghiệp theo tên hoặc loại món. Dùng khi người dùng hỏi danh sách món hoặc cần gợi ý món.',
+                        'Tìm kiếm món ăn trong cơ sở dữ liệu của doanh nghiệp theo tên hoặc loại món. Dùng khi người dùng hỏi danh sách món hoặc cần tra cứu món.',
                     'parameters' => [
                         'type' => 'object',
                         'properties' => [
@@ -540,6 +670,7 @@ PROMPT;
                     ]
                 ]
             ],
+
             [
                 'type' => 'function',
                 'function' => [
@@ -573,15 +704,19 @@ PROMPT;
                                     'Giới hạn loại món nếu người dùng yêu cầu.'
                             ]
                         ],
-                        'required' => ['criteria'],
+                        'required' => [
+                            'criteria'
+                        ],
                         'additionalProperties' => false
                     ]
                 ]
             ],
+
             [
                 'type' => 'function',
                 'function' => [
-                    'name' => 'filter_dishes_by_allergy',
+                    'name' =>
+                        'filter_dishes_by_allergy',
                     'description' =>
                         'Tìm các món ăn có chứa thành phần gây dị ứng dựa trên dữ liệu nguyên liệu.',
                     'parameters' => [
@@ -600,7 +735,9 @@ PROMPT;
                                     'Loại dị ứng cần tìm.'
                             ]
                         ],
-                        'required' => ['allergy_tag'],
+                        'required' => [
+                            'allergy_tag'
+                        ],
                         'additionalProperties' => false
                     ]
                 ]
@@ -608,12 +745,45 @@ PROMPT;
         ];
     }
 
-    private function checkModeMismatch($mode, $message)
-    {
+    /* Kiểm tra mode mismatch
+     */
+
+    private function checkModeMismatch(
+        $mode,
+        $message
+    ) {
         $text = mb_strtolower(
             trim($message),
             'UTF-8'
         );
+
+        $interfacePatterns = [
+            'giao diện hiện tại dùng để làm gì',
+            'giao diện này dùng để làm gì',
+            'màn hình hiện tại dùng để làm gì',
+            'màn hình này dùng để làm gì',
+            'chế độ hiện tại dùng để làm gì',
+            'đang ở chế độ gì',
+            'đây là giao diện gì',
+            'giao diện hiện tại là gì',
+            'màn hình hiện tại là gì'
+        ];
+
+        foreach ($interfacePatterns as $pattern) {
+            if (
+                mb_stripos(
+                    $text,
+                    $pattern,
+                    0,
+                    'UTF-8'
+                ) !== false
+            ) {
+                return null;
+            }
+        }
+
+        /* Tra cứu món / giá
+         */
 
         $lookupPatterns = [
             'đắt nhất',
@@ -636,6 +806,27 @@ PROMPT;
             'món ăn nào'
         ];
 
+        if ($mode !== 'dish_lookup') {
+            foreach ($lookupPatterns as $pattern) {
+                if (
+                    mb_stripos(
+                        $text,
+                        $pattern,
+                        0,
+                        'UTF-8'
+                    ) !== false
+                ) {
+                    return
+                        'Bạn đang ở chế độ '
+                        . $this->getModeName($mode)
+                        . '. Vui lòng chuyển sang chế độ Tra cứu món & giá để thực hiện yêu cầu này.';
+                }
+            }
+        }
+
+        /* Hướng dẫn thao tác
+         */
+
         $helpdeskPatterns = [
             'hướng dẫn',
             'làm sao để',
@@ -653,38 +844,20 @@ PROMPT;
             'sử dụng hệ thống'
         ];
 
-        $interfacePatterns = [
-            'giao diện hiện tại dùng để làm gì',
-            'giao diện này dùng để làm gì',
-            'màn hình hiện tại dùng để làm gì',
-            'màn hình này dùng để làm gì',
-            'chế độ hiện tại dùng để làm gì',
-            'đang ở chế độ gì',
-            'đây là giao diện gì'
-        ];
-
-        foreach ($interfacePatterns as $pattern) {
-            if (mb_stripos($text, $pattern, 0, 'UTF-8') !== false) {
-                return null;
-            }
-        }
-
-        if ($mode !== 'dish_lookup') {
-            foreach ($lookupPatterns as $pattern) {
-                if (mb_stripos($text, $pattern, 0, 'UTF-8') !== false) {
-                    return 'Bạn đang ở chế độ ' .
-                        $this->getModeName($mode) .
-                        '. Vui lòng chuyển sang chế độ Tra cứu món & giá để thực hiện yêu cầu này.';
-                }
-            }
-        }
-
         if ($mode !== 'helpdesk') {
             foreach ($helpdeskPatterns as $pattern) {
-                if (mb_stripos($text, $pattern, 0, 'UTF-8') !== false) {
-                    return 'Bạn đang ở chế độ ' .
-                        $this->getModeName($mode) .
-                        '. Vui lòng chuyển sang chế độ Hướng dẫn điền form / Thao tác để được hướng dẫn.';
+                if (
+                    mb_stripos(
+                        $text,
+                        $pattern,
+                        0,
+                        'UTF-8'
+                    ) !== false
+                ) {
+                    return
+                        'Bạn đang ở chế độ '
+                        . $this->getModeName($mode)
+                        . '. Vui lòng chuyển sang chế độ Hướng dẫn điền form / Thao tác để được hướng dẫn.';
                 }
             }
         }
@@ -695,12 +868,22 @@ PROMPT;
     private function getModeName($mode)
     {
         return match ($mode) {
-            'nutrition_analysis' => 'Kiểm duyệt thực đơn',
-            'dish_lookup' => 'Tra cứu món & giá',
-            'helpdesk' => 'Hướng dẫn điền form / Thao tác',
-            default => 'hiện tại'
+            'nutrition_analysis' =>
+            'Kiểm duyệt thực đơn',
+
+            'dish_lookup' =>
+            'Tra cứu món & giá',
+
+            'helpdesk' =>
+            'Hướng dẫn điền form / Thao tác',
+
+            default =>
+            'hiện tại'
         };
     }
+
+    /* Execute Tools
+     */
 
     private function executeTargetFunction(
         $name,
@@ -708,6 +891,10 @@ PROMPT;
         $companyId
     ) {
         switch ($name) {
+
+            /* Search dishes
+             */
+
             case 'search_dishes':
 
                 $query = Dish::where(
@@ -735,6 +922,7 @@ PROMPT;
                     ->limit(25)
                     ->get()
                     ->map(function ($dish) {
+
                         return [
                             'name' =>
                                 $dish->name,
@@ -758,11 +946,18 @@ PROMPT;
                             'glucid' =>
                                 $dish->glucid_per_serving,
 
+                            'fiber' =>
+                                $dish->fiber_per_serving,
+
                             'allergy_tags' =>
                                 $dish->allergy_tags
                         ];
                     })
+                    ->values()
                     ->toArray();
+
+            /* Dish statistics
+             */
 
             case 'get_dish_statistics':
 
@@ -779,44 +974,71 @@ PROMPT;
                     );
                 }
 
-                $criteria = $args['criteria'] ?? null;
+                $criteria =
+                    $args['criteria'] ?? null;
+
                 $dish = null;
 
                 switch ($criteria) {
+
                     case 'most_expensive':
+
                         $dish = $query
-                            ->where('estimated_cost', '>', 0)
+                            ->where(
+                                'estimated_cost',
+                                '>',
+                                0
+                            )
                             ->orderByRaw(
                                 '(estimated_cost / IF(servings > 0, servings, 1)) DESC'
                             )
                             ->first();
+
                         break;
 
                     case 'cheapest':
+
                         $dish = $query
-                            ->where('estimated_cost', '>', 0)
+                            ->where(
+                                'estimated_cost',
+                                '>',
+                                0
+                            )
                             ->orderByRaw(
                                 '(estimated_cost / IF(servings > 0, servings, 1)) ASC'
                             )
                             ->first();
+
                         break;
 
                     case 'highest_calories':
+
                         $dish = $query
-                            ->where('total_calories', '>', 0)
+                            ->where(
+                                'total_calories',
+                                '>',
+                                0
+                            )
                             ->orderByRaw(
                                 '(total_calories / IF(servings > 0, servings, 1)) DESC'
                             )
                             ->first();
+
                         break;
 
                     case 'lowest_calories':
+
                         $dish = $query
-                            ->where('total_calories', '>', 0)
+                            ->where(
+                                'total_calories',
+                                '>',
+                                0
+                            )
                             ->orderByRaw(
                                 '(total_calories / IF(servings > 0, servings, 1)) ASC'
                             )
                             ->first();
+
                         break;
                 }
 
@@ -848,13 +1070,21 @@ PROMPT;
                         $dish->fat_per_serving,
 
                     'glucid' =>
-                        $dish->glucid_per_serving
+                        $dish->glucid_per_serving,
+
+                    'fiber' =>
+                        $dish->fiber_per_serving
                 ];
+
+            /* Allergy
+             */
 
             case 'filter_dishes_by_allergy':
 
                 $tag = mb_strtolower(
-                    trim($args['allergy_tag'] ?? ''),
+                    trim(
+                        $args['allergy_tag'] ?? ''
+                    ),
                     'UTF-8'
                 );
 
@@ -872,9 +1102,12 @@ PROMPT;
                     ->whereHas(
                         'ingredients',
                         function ($q) use ($tag) {
+
                             $q->whereRaw(
                                 'LOWER(allergy_tags) LIKE ?',
-                                ['%' . $tag . '%']
+                                [
+                                    '%' . $tag . '%'
+                                ]
                             );
                         }
                     )
@@ -882,6 +1115,7 @@ PROMPT;
                     ->get();
 
                 if ($matchedDishes->isEmpty()) {
+
                     $allDishes = Dish::where(
                         'company_id',
                         $companyId
@@ -889,30 +1123,44 @@ PROMPT;
                         ->limit(100)
                         ->get();
 
-                    $matchedDishes = $allDishes->filter(
-                        function ($dish) use ($tag) {
-                            if (empty($dish->allergy_tags)) {
+                    $matchedDishes =
+                        $allDishes->filter(
+                            function ($dish) use ($tag) {
+
+                                if (
+                                    empty(
+                                    $dish->allergy_tags
+                                )
+                                ) {
+                                    return false;
+                                }
+
+                                $tags =
+                                    is_array(
+                                        $dish->allergy_tags
+                                    )
+                                    ? $dish->allergy_tags
+                                    : [
+                                        $dish->allergy_tags
+                                    ];
+
+                                foreach (
+                                    $tags as $item
+                                ) {
+
+                                    if (
+                                        mb_strtolower(
+                                            trim($item),
+                                            'UTF-8'
+                                        ) === $tag
+                                    ) {
+                                        return true;
+                                    }
+                                }
+
                                 return false;
                             }
-
-                            $tags = is_array($dish->allergy_tags)
-                                ? $dish->allergy_tags
-                                : [$dish->allergy_tags];
-
-                            foreach ($tags as $item) {
-                                if (
-                                    mb_strtolower(
-                                        trim($item),
-                                        'UTF-8'
-                                    ) === $tag
-                                ) {
-                                    return true;
-                                }
-                            }
-
-                            return false;
-                        }
-                    );
+                        );
                 }
 
                 if ($matchedDishes->isEmpty()) {
@@ -924,6 +1172,7 @@ PROMPT;
 
                 return $matchedDishes
                     ->map(function ($dish) {
+
                         return [
                             'name' =>
                                 $dish->name,
@@ -945,7 +1194,10 @@ PROMPT;
                                 $dish->fat_per_serving,
 
                             'glucid' =>
-                                $dish->glucid_per_serving
+                                $dish->glucid_per_serving,
+
+                            'fiber' =>
+                                $dish->fiber_per_serving
                         ];
                     })
                     ->values()
@@ -959,6 +1211,9 @@ PROMPT;
                 ];
         }
     }
+
+    /* Clean AI response
+     */
 
     private function cleanAiResponse($text)
     {
@@ -1003,18 +1258,25 @@ PROMPT;
             'Self-Correction/Verification',
             'Check rules:',
             'Output Generation',
+            'Output Generation:',
             'Proceeds to output',
             'All steps verified',
             'Done.'
         ];
 
-        $lines = preg_split('/\R/', $text);
+        $lines = preg_split(
+            '/\R/',
+            $text
+        );
+
         $cleanLines = [];
 
         foreach ($lines as $line) {
+
             $trimmed = trim($line);
 
             if ($trimmed === '') {
+
                 if (!empty($cleanLines)) {
                     $cleanLines[] = '';
                 }
@@ -1024,8 +1286,16 @@ PROMPT;
 
             $skip = false;
 
-            foreach ($blockedPrefixes as $prefix) {
-                if (stripos($trimmed, $prefix) === 0) {
+            foreach (
+                $blockedPrefixes as $prefix
+            ) {
+
+                if (
+                    stripos(
+                        $trimmed,
+                        $prefix
+                    ) === 0
+                ) {
                     $skip = true;
                     break;
                 }
@@ -1037,7 +1307,10 @@ PROMPT;
         }
 
         $text = trim(
-            implode("\n", $cleanLines)
+            implode(
+                "\n",
+                $cleanLines
+            )
         );
 
         $text = preg_replace(
